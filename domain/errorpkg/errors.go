@@ -6,10 +6,14 @@ import (
 
 var (
 	ErrInternalServer = NewError(http.StatusInternalServerError).
-				WithErrorCode("INTERNAL_SERVER_ERROR").
-				WithMessage("Something went wrong in our server. Please try again later.")
+		WithErrorCode("INTERNAL_SERVER_ERROR").
+		WithMessage("Something went wrong in our server. Please try again later.")
 
 	ErrFailParseRequest = NewError(http.StatusBadRequest).
-				WithErrorCode("FAIL_PARSE_REQUEST").
-				WithMessage("Failed to parse request. Please check your request format.")
+		WithErrorCode("FAIL_PARSE_REQUEST").
+		WithMessage("Failed to parse request. Please check your request format.")
+
+	ErrEmailAlreadyRegistered = NewError(http.StatusConflict).
+		WithErrorCode("EMAIL_ALREADY_REGISTERED").
+		WithMessage("Email already registered. Please login or use another email.")
 )

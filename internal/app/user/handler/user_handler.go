@@ -33,6 +33,14 @@ func InitUserHandler(
 		midw.RequireOneOfRoles(enum.RoleAdmin),
 		handler.createUser(),
 	)
+	userGroup.Get("/me",
+		midw.RequireAuthenticated(),
+		handler.getUser("me"),
+	)
+	userGroup.Get("/:id",
+		midw.RequireAuthenticated(),
+		handler.getUser("id"),
+	)
 	userGroup.Patch("/me",
 		midw.RequireAuthenticated(),
 		handler.updateUser(),
@@ -62,6 +70,33 @@ func (c *userHandler) createUser() fiber.Handler {
 
 		return ctx.Status(fiber.StatusCreated).JSON(map[string]interface{}{
 			"user": dto.UserResponse{ID: userID},
+		})
+	}
+}
+
+func (c *userHandler) getUser(param string) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		var userID uuid.UUID
+		if param == "me" {
+			userID = ctx.Locals("user.id").(uuid.UUID)
+		} else {
+			var err error
+			userID, err = uuid.Parse(ctx.Params("id"))
+			if err != nil {
+				return errorpkg.ErrFailParseRequest
+			}
+		}
+
+		user, err := c.svc.GetUserByID(ctx.Context(), userID)
+		if err != nil {
+			return err
+		}
+
+		resp := dto.UserResponse{}
+		resp.PopulateFromEntity(user)
+
+		return ctx.Status(fiber.StatusOK).JSON(map[string]interface{}{
+			"user": resp,
 		})
 	}
 }

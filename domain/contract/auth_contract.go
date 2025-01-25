@@ -8,17 +8,17 @@ import (
 )
 
 type IAuthRepository interface {
-	SetUserRegisterOTP(ctx context.Context, email, otp string) error
-	GetUserRegisterOTP(ctx context.Context, email string) (string, error)
-	DeleteUserRegisterOTP(ctx context.Context, email string) error
+	SetOTPRegisterUser(ctx context.Context, email, otp string) error
+	GetOTPRegisterUser(ctx context.Context, email string) (string, error)
+	DeleteOTPRegisterUser(ctx context.Context, email string) error
 
 	CreateAuthSession(ctx context.Context, authSession *entity.AuthSession) error
 	GetAuthSessionByToken(ctx context.Context, token string) (*entity.AuthSession, error)
 	DeleteAuthSession(ctx context.Context, userID uuid.UUID) error
 
-	SetUserResetPasswordOTP(ctx context.Context, email, otp string) error
-	GetUserResetPasswordOTP(ctx context.Context, email string) (string, error)
-	DeleteUserResetPasswordOTP(ctx context.Context, email string) error
+	SetOTPResetPassword(ctx context.Context, email, otp string) error
+	GetOTPResetPassword(ctx context.Context, email string) (string, error)
+	DeleteOTPResetPassword(ctx context.Context, email string) error
 }
 
 type IAuthService interface {

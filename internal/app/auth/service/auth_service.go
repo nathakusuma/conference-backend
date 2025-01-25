@@ -70,7 +70,7 @@ func (s *authService) RequestOTPRegisterUser(ctx context.Context, email string) 
 	otp := strconv.Itoa(randgen.RandomNumber(6))
 
 	// save otp
-	err = s.repo.SetUserRegisterOTP(ctx, email, otp)
+	err = s.repo.SetOTPRegisterUser(ctx, email, otp)
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
 			"error": err.Error(),
@@ -102,7 +102,7 @@ func (s *authService) RequestOTPRegisterUser(ctx context.Context, email string) 
 }
 
 func (s *authService) CheckOTPRegisterUser(ctx context.Context, email, otp string) error {
-	savedOtp, err := s.repo.GetUserRegisterOTP(ctx, email)
+	savedOtp, err := s.repo.GetOTPRegisterUser(ctx, email)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return errorpkg.ErrInvalidOTP
@@ -134,7 +134,7 @@ func (s *authService) RegisterUser(ctx context.Context,
 	loggableReq.OTP = ""
 
 	// get otp
-	savedOtp, err := s.repo.GetUserRegisterOTP(ctx, req.Email)
+	savedOtp, err := s.repo.GetOTPRegisterUser(ctx, req.Email)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return resp, errorpkg.ErrInvalidOTP
@@ -153,7 +153,7 @@ func (s *authService) RegisterUser(ctx context.Context,
 	}
 
 	// delete otp
-	err = s.repo.DeleteUserRegisterOTP(ctx, req.Email)
+	err = s.repo.DeleteOTPRegisterUser(ctx, req.Email)
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
 			"error": err.Error(),
@@ -389,7 +389,7 @@ func (s *authService) RequestOTPResetPassword(ctx context.Context, email string)
 	otp := strconv.Itoa(randgen.RandomNumber(6))
 
 	// save otp
-	err = s.repo.SetUserResetPasswordOTP(ctx, email, otp)
+	err = s.repo.SetOTPResetPassword(ctx, email, otp)
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
 			"error": err.Error(),
@@ -421,7 +421,7 @@ func (s *authService) RequestOTPResetPassword(ctx context.Context, email string)
 
 func (s *authService) ResetPassword(ctx context.Context, req dto.ResetPasswordRequest) (dto.LoginResponse, error) {
 	// get otp
-	savedOtp, err := s.repo.GetUserResetPasswordOTP(ctx, req.Email)
+	savedOtp, err := s.repo.GetOTPResetPassword(ctx, req.Email)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return dto.LoginResponse{}, errorpkg.ErrInvalidOTP
@@ -440,7 +440,7 @@ func (s *authService) ResetPassword(ctx context.Context, req dto.ResetPasswordRe
 	}
 
 	// delete otp
-	err = s.repo.SetUserResetPasswordOTP(ctx, req.Email, "")
+	err = s.repo.SetOTPResetPassword(ctx, req.Email, "")
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
 			"error": err.Error(),

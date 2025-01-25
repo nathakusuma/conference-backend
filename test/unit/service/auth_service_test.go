@@ -11,6 +11,7 @@ import (
 	appmocks "github.com/nathakusuma/astungkara/test/unit/mocks/app"
 	pkgmocks "github.com/nathakusuma/astungkara/test/unit/mocks/pkg"
 	_ "github.com/nathakusuma/astungkara/test/unit/setup"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
@@ -115,5 +116,56 @@ func Test_AuthService_RequestOTPRegisterUser(t *testing.T) {
 		err := svc.RequestOTPRegisterUser(ctx, email)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
+	})
+}
+
+func Test_AuthService_CheckOTPRegisterUser(t *testing.T) {
+	ctx := context.Background()
+	email := "test@example.com"
+	otp := "123456"
+
+	t.Run("success", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserRegisterOTP(ctx, email).
+			Return(otp, nil)
+
+		err := svc.CheckOTPRegisterUser(ctx, email, otp)
+		assert.NoError(t, err)
+	})
+
+	t.Run("error - OTP not found", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserRegisterOTP(ctx, email).
+			Return("", redis.Nil)
+
+		err := svc.CheckOTPRegisterUser(ctx, email, otp)
+		assert.ErrorIs(t, err, errorpkg.ErrInvalidOTP)
+	})
+
+	t.Run("error - get OTP fails", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserRegisterOTP(ctx, email).
+			Return("", errors.New("redis error"))
+
+		err := svc.CheckOTPRegisterUser(ctx, email, otp)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
+	})
+
+	t.Run("error - invalid OTP", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserRegisterOTP(ctx, email).
+			Return("654321", nil)
+
+		err := svc.CheckOTPRegisterUser(ctx, email, otp)
+		assert.ErrorIs(t, err, errorpkg.ErrInvalidOTP)
 	})
 }

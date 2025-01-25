@@ -23,3 +23,7 @@ func NewAuthRepository(db *sqlx.DB, rds *redis.Client) contract.IAuthRepository 
 func (r *authRepository) SetUserRegisterOTP(ctx context.Context, email string, otp string) error {
 	return r.rds.Set(ctx, "auth:"+email+":otp", otp, 10*time.Minute).Err()
 }
+
+func (r *authRepository) GetUserRegisterOTP(ctx context.Context, email string) (string, error) {
+	return "", nil
+}

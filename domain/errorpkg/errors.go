@@ -6,18 +6,22 @@ import (
 
 var (
 	ErrInternalServer = NewError(http.StatusInternalServerError).
-				WithErrorCode("INTERNAL_SERVER_ERROR").
-				WithMessage("Something went wrong in our server. Please try again later.")
+		WithErrorCode("INTERNAL_SERVER_ERROR").
+		WithMessage("Something went wrong in our server. Please try again later.")
 
 	ErrFailParseRequest = NewError(http.StatusBadRequest).
-				WithErrorCode("FAIL_PARSE_REQUEST").
-				WithMessage("Failed to parse request. Please check your request format.")
+		WithErrorCode("FAIL_PARSE_REQUEST").
+		WithMessage("Failed to parse request. Please check your request format.")
+
+	ErrInvalidOTP = NewError(http.StatusUnauthorized).
+		WithErrorCode("INVALID_OTP").
+		WithMessage("Invalid OTP. Please try again or request a new OTP.")
 
 	ErrNotFound = NewError(http.StatusNotFound).
-			WithErrorCode("NOT_FOUND").
-			WithMessage("Data not found.")
+		WithErrorCode("NOT_FOUND").
+		WithMessage("Data not found.")
 
 	ErrEmailAlreadyRegistered = NewError(http.StatusConflict).
-					WithErrorCode("EMAIL_ALREADY_REGISTERED").
-					WithMessage("Email already registered. Please login or use another email.")
+		WithErrorCode("EMAIL_ALREADY_REGISTERED").
+		WithMessage("Email already registered. Please login or use another email.")
 )

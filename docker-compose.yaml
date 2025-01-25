@@ -1,0 +1,70 @@
+services:
+  server:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - network
+    restart: always
+
+  app:
+    image: nathakusuma/astungkara:latest
+    env_file:
+      - .env
+    environment:
+      - PORT=8080
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./storage/logs:/app/storage/logs
+    networks:
+      - network
+    restart: on-failure
+
+  db:
+    image: postgres:17.2
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+      - PORT=${DB_PORT}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - network
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${DB_USER} -d ${DB_NAME}'"]
+      start_interval: 5s
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    image: redis:7.4-alpine
+    volumes:
+      - redis:/data
+    networks:
+      - network
+    healthcheck:
+      test:  ["CMD", "redis-cli", "--raw", "incr", "ping" ]
+      start_interval: 5s
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres:
+    driver: local
+  redis:
+    driver: local
+
+networks:
+  network:
+    driver: bridge

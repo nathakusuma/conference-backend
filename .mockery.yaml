@@ -19,6 +19,20 @@ packages:
       filename: "{{.InterfaceName}}_mock.go"
       dir: "test/unit/mocks/pkg"
 
+  github.com/nathakusuma/astungkara/pkg/jwt:
+    interfaces:
+      include: [ "*" ]
+    config:
+      filename: "{{.InterfaceName}}_mock.go"
+      dir: "test/unit/mocks/pkg"
+
+  github.com/nathakusuma/astungkara/pkg/mail:
+    interfaces:
+      include: [ "*" ]
+    config:
+      filename: "{{.InterfaceName}}_mock.go"
+      dir: "test/unit/mocks/pkg"
+
   github.com/nathakusuma/astungkara/pkg/uuidpkg:
     interfaces:
       include: ["*"]

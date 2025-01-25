@@ -9,18 +9,24 @@ import (
 )
 
 type Env struct {
-	AppEnv    string `mapstructure:"APP_ENV"`
-	AppPort   string `mapstructure:"APP_PORT"`
-	AppURL    string `mapstructure:"APP_URL"`
-	DBHost    string `mapstructure:"DB_HOST"`
-	DBPort    string `mapstructure:"DB_PORT"`
-	DBUser    string `mapstructure:"DB_USER"`
-	DBPass    string `mapstructure:"DB_PASS"`
-	DBName    string `mapstructure:"DB_NAME"`
-	RedisHost string `mapstructure:"REDIS_HOST"`
-	RedisPort string `mapstructure:"REDIS_PORT"`
-	RedisPass string `mapstructure:"REDIS_PASS"`
-	RedisDB   int    `mapstructure:"REDIS_DB"`
+	AppEnv       string `mapstructure:"APP_ENV"`
+	AppPort      string `mapstructure:"APP_PORT"`
+	AppURL       string `mapstructure:"APP_URL"`
+	FrontendURL  string `mapstructure:"FRONTEND_URL"`
+	DBHost       string `mapstructure:"DB_HOST"`
+	DBPort       string `mapstructure:"DB_PORT"`
+	DBUser       string `mapstructure:"DB_USER"`
+	DBPass       string `mapstructure:"DB_PASS"`
+	DBName       string `mapstructure:"DB_NAME"`
+	RedisHost    string `mapstructure:"REDIS_HOST"`
+	RedisPort    string `mapstructure:"REDIS_PORT"`
+	RedisPass    string `mapstructure:"REDIS_PASS"`
+	RedisDB      int    `mapstructure:"REDIS_DB"`
+	SmtpHost     string `mapstructure:"SMTP_HOST"`
+	SmtpPort     int    `mapstructure:"SMTP_PORT"`
+	SmtpUsername string `mapstructure:"SMTP_USERNAME"`
+	SmtpEmail    string `mapstructure:"SMTP_EMAIL"`
+	SmtpPassword string `mapstructure:"SMTP_PASSWORD"`
 }
 
 var (

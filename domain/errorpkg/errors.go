@@ -17,10 +17,6 @@ var (
 		WithErrorCode("EMAIL_ALREADY_REGISTERED").
 		WithMessage("Email already registered. Please login or use another email.")
 
-	ErrExpiredBearerToken = NewError(http.StatusUnauthorized).
-		WithErrorCode("EXPIRED_BEARER_TOKEN").
-		WithMessage("Your session has expired. Please renew your session.")
-
 	ErrFailParseRequest = NewError(http.StatusBadRequest).
 		WithErrorCode("FAIL_PARSE_REQUEST").
 		WithMessage("Failed to parse request. Please check your request format.")

@@ -51,6 +51,27 @@ components:
           type: [ "string", "null" ]
           format: date-time
 
+    UserMinimal:
+      type: object
+      properties:
+        id:
+          type: [ "string", "null" ]
+          format: uuid
+        name:
+          type: [ "string", "null" ]
+          examples:
+            - "Natha Kusuma"
+        role:
+          oneOf:
+            - $ref: '#/components/schemas/UserRole'
+            - type: "null"
+          examples:
+            - "user"
+        bio:
+          type: [ "string", "null" ]
+          examples:
+            - "Seorang programmer pemula yang sedang belajar backend"
+
     ErrorResponse:
       type: object
       properties:
@@ -699,7 +720,7 @@ paths:
                   - user
                 properties:
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserMinimal'
         '400':
           $ref: '#/components/responses/FailParseRequest'
         '401':

@@ -4,9 +4,10 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
-	"github.com/nathakusuma/astungkara/internal/app/auth/handler"
+	authhnd "github.com/nathakusuma/astungkara/internal/app/auth/handler"
 	authrepo "github.com/nathakusuma/astungkara/internal/app/auth/repository"
 	authsvc "github.com/nathakusuma/astungkara/internal/app/auth/service"
+	userhnd "github.com/nathakusuma/astungkara/internal/app/user/handler"
 	userrepo "github.com/nathakusuma/astungkara/internal/app/user/repository"
 	usersvc "github.com/nathakusuma/astungkara/internal/app/user/service"
 	"github.com/nathakusuma/astungkara/internal/infra/env"
@@ -93,5 +94,6 @@ func (s *httpServer) MountRoutes(db *sqlx.DB, rds *redis.Client) {
 	userService := usersvc.NewUserService(userRepository, bcryptInstance, uuidInstance)
 	authService := authsvc.NewAuthService(authRepository, userService, bcryptInstance, jwtAccess, mailer, uuidInstance)
 
-	handler.InitAuthHandler(v1, middlewareInstance, validatorInstance, authService)
+	userhnd.InitUserHandler(v1, middlewareInstance, validatorInstance, userService)
+	authhnd.InitAuthHandler(v1, middlewareInstance, validatorInstance, authService)
 }

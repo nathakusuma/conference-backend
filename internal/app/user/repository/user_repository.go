@@ -47,6 +47,7 @@ func (r *userRepository) GetUserByField(ctx context.Context, field, value string
 			email,
 			password_hash,
 			role,
+			bio,
 			created_at,
 			updated_at,
 			deleted_at
@@ -72,6 +73,7 @@ func (r *userRepository) updateUser(ctx context.Context, tx sqlx.ExtContext, use
 			email = :email,
 			password_hash = :password_hash,
 			role = :role,
+			bio = :bio,
 			updated_at = now()
 		WHERE id = :id`,
 		user,

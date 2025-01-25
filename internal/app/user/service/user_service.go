@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -81,6 +82,28 @@ func (s *userService) CreateUser(ctx context.Context, req *dto.CreateUserRequest
 	return userID, nil
 }
 
+func (s *userService) getUserByField(ctx context.Context, field, value string) (*entity.User, error) {
+	// get from repository
+	user, err := s.userRepo.GetUserByField(ctx, field, value)
+	if err != nil {
+		// if user not found
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errorpkg.ErrNotFound
+		}
+
+		// other error
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+			"field": field,
+			"value": value,
+		}, "[UserService][getUserByField] Failed to get user by field")
+
+		return nil, errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	return user, nil
+}
+
 func (s *userService) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
-	return nil, nil
+	return s.getUserByField(ctx, "email", email)
 }

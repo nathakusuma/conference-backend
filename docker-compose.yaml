@@ -11,6 +11,16 @@ services:
       - network
     restart: always
 
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.4
+    command:
+      - -nginx.scrape-uri=http://server:80/stub_status
+    depends_on:
+      - server
+    networks:
+      - network
+    restart: always
+
   app:
     image: nathakusuma/astungkara:latest
     env_file:
@@ -46,6 +56,18 @@ services:
       timeout: 5s
       retries: 3
 
+  postgres-exporter:
+    image: bitnami/postgres-exporter:0.16.0
+    container_name: postgres-exporter
+    environment:
+      - POSTGRES_EXPORTER_DATA_SOURCE_NAME=postgresql://${DB_USER}:${DB_PASS}@db:${DB_PORT}/${DB_NAME}?sslmode=disable
+      - POSTGRES_EXPORTER_AUTO_DISCOVER_DATABASES=true
+    networks:
+      - network
+    depends_on:
+      - db
+    restart: always
+
   redis:
     image: redis:7.4-alpine
     volumes:
@@ -59,10 +81,70 @@ services:
       timeout: 5s
       retries: 3
 
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.67.0-alpine
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    networks:
+      - network
+    depends_on:
+      - redis
+    restart: always
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - network
+    restart: always
+
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - network
+    restart: always
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana:/var/lib/grafana
+    networks:
+      - network
+    depends_on:
+      - prometheus
+    restart: always
+
 volumes:
   postgres:
     driver: local
   redis:
+    driver: local
+  prometheus:
+    driver: local
+  grafana:
     driver: local
 
 networks:

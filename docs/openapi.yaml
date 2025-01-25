@@ -9,6 +9,120 @@ servers:
   - url: "http://localhost/api/v1"
     description: Local development server
 
+components:
+  schemas:
+    # Common request/response fields
+    EmailField:
+      type: string
+      format: email
+      examples:
+        - "astungkara@nathakusuma.com"
+
+    OTPField:
+      type: string
+      minLength: 6
+      maxLength: 6
+      pattern: "^[0-9]{6}$"
+      examples:
+        - "123456"
+
+    PasswordField:
+      type: string
+      format: password
+      examples:
+        - "very-secure-password"
+
+    # User related schemas
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - role
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          examples:
+            - "01948552-2721-787b-8d97-7c463fda4a9e"
+        name:
+          type: string
+          examples:
+            - "I Putu Natha Kusuma"
+        email:
+          $ref: '#/components/schemas/EmailField'
+        role:
+          type: string
+          enum: [ super_admin, admin, user, event_coordinator ]
+          examples:
+            - "user"
+        created_at:
+          type: string
+          format: date-time
+          examples:
+            - "2025-01-20T25:05:41.282989Z"
+        updated_at:
+          type: string
+          format: date-time
+          examples:
+            - "2025-01-20T25:05:41.282989Z"
+
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Error message
+        detail:
+          type: [ object, "null" ]
+          description: Additional error details, can be any type
+        error_code:
+          type: [ string, "null" ]
+          description: Error code identifier
+        trace_id:
+          type: [ string, "null" ]
+          format: uuid
+          description: Unique trace ID for error tracking
+
+  responses:
+    LoginSuccess:
+      description: Successful authentication response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - access_token
+              - refresh_token
+              - user
+            properties:
+              access_token:
+                type: string
+                examples:
+                  - "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              refresh_token:
+                type: string
+                examples:
+                  - "XcQqHgyLo99ywBFFQd4bxUsaR6RK2kJWGOqdFSX7xWW8kuNdTw1OoWivF1jS9Yrm"
+              user:
+                $ref: '#/components/schemas/User'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "Something went wrong in our server. Please try again later."
+            error_code: "INTERNAL_SERVER_ERROR"
+            trace_id: "652e0a03-1c0a-404a-ac47-685d7ecb22d8"
+
 paths:
   /auth/register/otp:
     post:
@@ -24,10 +138,7 @@ paths:
                 - email
               properties:
                 email:
-                  type: string
-                  format: email
-                  examples:
-                    - "astungkara@nathakusuma.com"
+                  $ref: '#/components/schemas/EmailField'
       responses:
         '204':
           description: Success - OTP sent successfully
@@ -55,15 +166,7 @@ paths:
                       translation: "Email is a required field"
                 error_code: "VALIDATION_ERROR"
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "Something went wrong in our server. Please try again later."
-                error_code: "INTERNAL_SERVER_ERROR"
-                trace_id: "652e0a03-1c0a-404a-ac47-685d7ecb22d8"
+          $ref: '#/components/responses/InternalServerError'
 
   /auth/register/otp/check:
     post:
@@ -80,17 +183,9 @@ paths:
                 - otp
               properties:
                 email:
-                  type: string
-                  format: email
-                  examples:
-                    - "astungkara@nathakusuma.com"
+                  $ref: '#/components/schemas/EmailField'
                 otp:
-                  type: string
-                  minLength: 6
-                  maxLength: 6
-                  pattern: "^[0-9]{6}$"
-                  examples:
-                    - "123456"
+                  $ref: '#/components/schemas/OTPField'
       responses:
         '204':
           description: Success - OTP verification successful
@@ -122,15 +217,75 @@ paths:
                       translation: "OTP is a required field"
                 error_code: "VALIDATION_ERROR"
         '500':
-          description: Internal server error
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/register:
+    post:
+      summary: Register User
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+                - name
+                - password
+              properties:
+                email:
+                  $ref: '#/components/schemas/EmailField'
+                otp:
+                  $ref: '#/components/schemas/OTPField'
+                name:
+                  type: string
+                  examples:
+                    - "I Putu Natha Kusuma"
+                password:
+                  $ref: '#/components/schemas/PasswordField'
+      responses:
+        '201':
+          description: Success
+          $ref: '#/components/responses/LoginSuccess'
+        '401':
+          description: Invalid OTP
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
-                message: "Something went wrong in our server. Please try again later."
-                error_code: "INTERNAL_SERVER_ERROR"
-                trace_id: "652e0a03-1c0a-404a-ac47-685d7ecb22d8"
+                message: "Invalid OTP. Please try again or request a new OTP."
+                error_code: "INVALID_OTP"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "There are invalid fields in your request. Please check and try again"
+                detail:
+                  - email:
+                      tag: "required"
+                      param: ""
+                      translation: "Email is a required field"
+                  - otp:
+                      tag: "required"
+                      param: ""
+                      translation: "OTP is a required field"
+                  - name:
+                      tag: "required"
+                      param: ""
+                      translation: "Name is a required field"
+                  - password:
+                      tag: "required"
+                      param: ""
+                      translation: "Password is a required field"
+                error_code: "VALIDATION_ERROR"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /auth/login:
     post:
@@ -147,74 +302,13 @@ paths:
                 - password
               properties:
                 email:
-                  type: string
-                  format: email
-                  examples:
-                    - "astungkara@nathakusuma.com"
+                  $ref: '#/components/schemas/EmailField'
                 password:
-                  type: string
-                  format: password
-                  examples:
-                    - "very-secure-password"
+                  $ref: '#/components/schemas/PasswordField'
       responses:
         '200':
           description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - access_token
-                  - refresh_token
-                  - user
-                properties:
-                  access_token:
-                    type: string
-                    examples:
-                      - "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-                  refresh_token:
-                    type: string
-                    examples:
-                      - "J53IGokemur6PAPrymVTeOneDdmZk5n4RSJAKDuUxy6SryHyc5vT0gAkT3SXA4ET"
-                  user:
-                    type: object
-                    required:
-                      - id
-                      - name
-                      - email
-                      - role
-                      - created_at
-                      - updated_at
-                    properties:
-                      id:
-                        type: string
-                        format: uuid
-                        examples:
-                          - "01948552-2721-787b-8d97-7c463fda4a9e"
-                      name:
-                        type: string
-                        examples:
-                          - "I Putu Natha Kusuma"
-                      email:
-                        type: string
-                        format: email
-                        examples:
-                          - "astungkara@nathakusuma.com"
-                      role:
-                        type: string
-                        enum: [ super_admin, admin, user, event_coordinator ]
-                        examples:
-                          - "user"
-                      created_at:
-                        type: string
-                        format: date-time
-                        examples:
-                          - "2025-01-25T12:05:41.282989Z"
-                      updated_at:
-                        type: string
-                        format: date-time
-                        examples:
-                          - "2025-01-25T12:05:41.282989Z"
+          $ref: '#/components/responses/LoginSuccess'
         '401':
           description: Credentials Not Match
           content:
@@ -234,7 +328,7 @@ paths:
                 message: "User not found. Please register first."
                 error_code: "NOT_FOUND"
         '422':
-          description: Validation Error
+          description: Validation error
           content:
             application/json:
               schema:
@@ -252,33 +346,4 @@ paths:
                       translation: "Password is a required field"
                 error_code: "VALIDATION_ERROR"
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "Something went wrong in our server. Please try again later."
-                error_code: "INTERNAL_SERVER_ERROR"
-                trace_id: "652e0a03-1c0a-404a-ac47-685d7ecb22d8"
-
-components:
-  schemas:
-    ErrorResponse:
-      type: object
-      required:
-        - message
-      properties:
-        message:
-          type: string
-          description: Error message
-        detail:
-          type: [ object, "null" ]
-          description: Additional error details, can be any type
-        error_code:
-          type: [ string, "null" ]
-          description: Error code identifier
-        trace_id:
-          type: [ string, "null" ]
-          format: uuid
-          description: Unique trace ID for error tracking
+          $ref: '#/components/responses/InternalServerError'

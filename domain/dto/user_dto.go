@@ -13,8 +13,8 @@ type UserResponse struct {
 	Email     string        `json:"email,omitempty"`
 	Role      enum.UserRole `json:"role,omitempty,omitempty"`
 	Bio       *string       `json:"bio,omitempty"`
-	CreatedAt time.Time     `json:"created_at,omitempty"`
-	UpdatedAt time.Time     `json:"updated_at,omitempty"`
+	CreatedAt *time.Time    `json:"created_at,omitempty"`
+	UpdatedAt *time.Time    `json:"updated_at,omitempty"`
 }
 
 func (u *UserResponse) PopulateFromEntity(user *entity.User) *UserResponse {
@@ -23,8 +23,8 @@ func (u *UserResponse) PopulateFromEntity(user *entity.User) *UserResponse {
 	u.Email = user.Email
 	u.Role = user.Role
 	u.Bio = user.Bio
-	u.CreatedAt = user.CreatedAt
-	u.UpdatedAt = user.UpdatedAt
+	u.CreatedAt = &user.CreatedAt
+	u.UpdatedAt = &user.UpdatedAt
 	return u
 }
 
@@ -32,7 +32,7 @@ type CreateUserRequest struct {
 	Name     string        `json:"name" validate:"required,min=3,max=100,ascii"`
 	Email    string        `json:"email" validate:"required,email,max=320"`
 	Password string        `json:"password" validate:"required,min=8,max=72,ascii"`
-	Role     enum.UserRole `json:"role" validate:"required,oneof=admin event_coordinator user"`
+	Role     enum.UserRole `json:"role" validate:"required,oneof=event_coordinator user"`
 }
 
 type UpdateUserRequest struct {

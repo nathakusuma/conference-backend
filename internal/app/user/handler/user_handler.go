@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/nathakusuma/astungkara/domain/contract"
 	"github.com/nathakusuma/astungkara/domain/dto"
+	"github.com/nathakusuma/astungkara/domain/enum"
 	"github.com/nathakusuma/astungkara/domain/errorpkg"
 	"github.com/nathakusuma/astungkara/internal/middleware"
 	"github.com/nathakusuma/astungkara/pkg/validator"
@@ -17,7 +18,7 @@ type userHandler struct {
 
 func InitUserHandler(
 	router fiber.Router,
-	middlewareInstance *middleware.Middleware,
+	midw *middleware.Middleware,
 	validator validator.IValidator,
 	userSvc contract.IUserService,
 ) {
@@ -27,7 +28,30 @@ func InitUserHandler(
 	}
 
 	userGroup := router.Group("/users")
-	userGroup.Patch("", middlewareInstance.RequireAuthenticated(), handler.updateUser())
+	userGroup.Post("", midw.RequireAuthenticated(), midw.RequireOneOfRoles(enum.RoleAdmin), handler.createUser())
+	userGroup.Patch("", midw.RequireAuthenticated(), handler.updateUser())
+}
+
+func (c *userHandler) createUser() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		var req dto.CreateUserRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return errorpkg.ErrFailParseRequest
+		}
+
+		if err := c.val.ValidateStruct(req); err != nil {
+			return err
+		}
+
+		userID, err := c.svc.CreateUser(ctx.Context(), &req)
+		if err != nil {
+			return err
+		}
+
+		return ctx.Status(fiber.StatusCreated).JSON(map[string]interface{}{
+			"user": dto.UserResponse{ID: userID},
+		})
+	}
 }
 
 func (c *userHandler) updateUser() fiber.Handler {

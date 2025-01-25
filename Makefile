@@ -4,10 +4,10 @@
 -include .env
 
 # Default environment variables for Docker Compose
-POSTGRES_URL := postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
+POSTGRES_URL := postgres://$(DB_USER):$(DB_PASS)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable
 
 # Run migration commands
-MIGRATE_CMD=docker compose run --rm astungkara-migrate -database "${POSTGRES_URL}" -path database/migrations/
+MIGRATE_CMD=docker compose run --rm migrate -database "${POSTGRES_URL}" -path migration/
 
 # Targets for different migration commands
 .PHONY: up down redo status version force

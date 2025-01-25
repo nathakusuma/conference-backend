@@ -408,3 +408,148 @@ func Test_UserService_UpdatePassword(t *testing.T) {
 		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 }
+
+func Test_UserService_UpdateUser(t *testing.T) {
+	ctx := context.Background()
+	userID := uuid.New()
+	name := "Updated Name"
+	bio := "Updated Bio"
+
+	t.Run("success - update all fields", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		existingUser := &entity.User{
+			ID:        userID,
+			Name:      "Original Name",
+			Email:     "test@example.com",
+			Bio:       nil,
+			Role:      enum.RoleUser,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+
+		req := dto.UpdateUserRequest{
+			Name: &name,
+			Bio:  &bio,
+		}
+
+		// Expect to get user by ID
+		mocks.userRepo.EXPECT().
+			GetUserByField(ctx, "id", userID.String()).
+			Return(existingUser, nil)
+
+		// Expect user update with new values
+		expectedUpdatedUser := *existingUser
+		expectedUpdatedUser.Name = name
+		expectedUpdatedUser.Bio = &bio
+		mocks.userRepo.EXPECT().
+			UpdateUser(ctx, &expectedUpdatedUser).
+			Return(nil)
+
+		err := svc.UpdateUser(ctx, userID, req)
+		assert.NoError(t, err)
+	})
+
+	t.Run("success - update partial fields", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		existingUser := &entity.User{
+			ID:        userID,
+			Name:      "Original Name",
+			Email:     "test@example.com",
+			Bio:       nil,
+			Role:      enum.RoleUser,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+
+		req := dto.UpdateUserRequest{
+			Name: &name,
+			Bio:  nil,
+		}
+
+		// Expect to get user by ID
+		mocks.userRepo.EXPECT().
+			GetUserByField(ctx, "id", userID.String()).
+			Return(existingUser, nil)
+
+		// Expect user update with only name updated
+		expectedUpdatedUser := *existingUser
+		expectedUpdatedUser.Name = name
+		mocks.userRepo.EXPECT().
+			UpdateUser(ctx, &expectedUpdatedUser).
+			Return(nil)
+
+		err := svc.UpdateUser(ctx, userID, req)
+		assert.NoError(t, err)
+	})
+
+	t.Run("error - user not found", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		req := dto.UpdateUserRequest{
+			Name: &name,
+			Bio:  &bio,
+		}
+
+		// Expect to get user by ID - returns not found
+		mocks.userRepo.EXPECT().
+			GetUserByField(ctx, "id", userID.String()).
+			Return(nil, sql.ErrNoRows)
+
+		err := svc.UpdateUser(ctx, userID, req)
+		assert.ErrorIs(t, err, errorpkg.ErrNotFound)
+	})
+
+	t.Run("error - repository error during get", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		req := dto.UpdateUserRequest{
+			Name: &name,
+			Bio:  &bio,
+		}
+
+		// Expect to get user by ID - returns error
+		mocks.userRepo.EXPECT().
+			GetUserByField(ctx, "id", userID.String()).
+			Return(nil, errors.New("db error"))
+
+		err := svc.UpdateUser(ctx, userID, req)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+
+	t.Run("error - repository error during update", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		existingUser := &entity.User{
+			ID:        userID,
+			Name:      "Original Name",
+			Email:     "test@example.com",
+			Bio:       nil,
+			Role:      enum.RoleUser,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+
+		req := dto.UpdateUserRequest{
+			Name: &name,
+			Bio:  &bio,
+		}
+
+		// Expect to get user by ID
+		mocks.userRepo.EXPECT().
+			GetUserByField(ctx, "id", userID.String()).
+			Return(existingUser, nil)
+
+		// Expect user update to fail
+		expectedUpdatedUser := *existingUser
+		expectedUpdatedUser.Name = name
+		expectedUpdatedUser.Bio = &bio
+		mocks.userRepo.EXPECT().
+			UpdateUser(ctx, &expectedUpdatedUser).
+			Return(errors.New("db error"))
+
+		err := svc.UpdateUser(ctx, userID, req)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+}

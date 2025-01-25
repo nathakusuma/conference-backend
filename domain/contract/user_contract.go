@@ -19,4 +19,5 @@ type IUserService interface {
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
 	UpdatePassword(ctx context.Context, email, newPassword string) error
+	UpdateUser(ctx context.Context, id uuid.UUID, req dto.UpdateUserRequest) error
 }

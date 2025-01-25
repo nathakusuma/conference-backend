@@ -17,103 +17,72 @@ components:
       bearerFormat: JWT
 
   schemas:
-    # Common request/response fields
-    EmailField:
+    UserRole:
       type: string
-      format: email
-      examples:
-        - "astungkara@nathakusuma.com"
+      enum: [ user, admin, event_coordinator ]
 
-    OTPField:
-      type: string
-      minLength: 6
-      maxLength: 6
-      pattern: "^[0-9]{6}$"
-      examples:
-        - "123456"
-
-    PasswordField:
-      type: string
-      format: password
-      examples:
-        - "very-secure-password"
-
-    # User related schemas
     User:
       type: object
       properties:
         id:
           type: [ "string", "null" ]
           format: uuid
-          examples:
-            - "01948552-2721-787b-8d97-7c463fda4a9e"
         name:
           type: [ "string", "null" ]
           examples:
-            - "I Putu Natha Kusuma"
+            - "Natha Kusuma"
         email:
-          oneOf:
-            - $ref: '#/components/schemas/EmailField'
-            - type: "null"
-        role:
           type: [ "string", "null" ]
-          enum: [ super_admin, admin, user, event_coordinator ]
+          format: email
+        role:
+          oneOf:
+            - $ref: '#/components/schemas/UserRole'
+            - type: "null"
           examples:
             - "user"
         bio:
           type: [ "string", "null" ]
+          examples:
+            - "Seorang programmer pemula yang sedang belajar backend"
         created_at:
           type: [ "string", "null" ]
           format: date-time
-          examples:
-            - "2025-01-25T20:05:41.282989Z"
         updated_at:
           type: [ "string", "null" ]
           format: date-time
-          examples:
-            - "2025-01-25T20:05:41.282989Z"
 
     ErrorResponse:
       type: object
-      required:
-        - message
       properties:
         message:
-          type: string
+          type: [ "string", "null" ]
           description: Error message
         detail:
-          type: [ object, "null" ]
-          description: Additional error details, can be any type
+          type: [ "object", "null" ]
+          description: Additional error details
         error_code:
-          type: [ string, "null" ]
+          type: [ "string", "null" ]
           description: Error code identifier
         trace_id:
-          type: [ string, "null" ]
+          type: [ "string", "null" ]
           format: uuid
           description: Unique trace ID for error tracking
 
   responses:
-    LoginSuccess:
-      description: Successful authentication response
+    ValidationError:
+      description: Validation error
       content:
         application/json:
           schema:
-            type: object
-            required:
-              - access_token
-              - refresh_token
-              - user
-            properties:
-              access_token:
-                type: string
-                examples:
-                  - "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-              refresh_token:
-                type: string
-                examples:
-                  - "XcQqHgyLo99ywBFFQd4bxUsaR6RK2kJWGOqdFSX7xWW8kuNdTw1OoWivF1jS9Yrm"
-              user:
-                $ref: '#/components/schemas/User'
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "There are invalid fields in your request. Please check and try again"
+            detail:
+              - email:
+                  tag: "required"
+                  param: ""
+                  translation: "Email is a required field"
+            error_code: "VALIDATION_ERROR"
 
     AuthenticationError:
       description: Authentication failed
@@ -143,15 +112,45 @@ components:
             message: "Auth session is invalid. Please login again."
             error_code: "INVALID_REFRESH_TOKEN"
 
-    ForbiddenRole:
-      description: User role not authorized
+    InvalidOTP:
+      description: Invalid OTP
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
           example:
-            message: "You're not allowed to access this resource."
-            error_code: "FORBIDDEN_ROLE"
+            message: "Invalid OTP. Please try again or request a new OTP."
+            error_code: "INVALID_OTP"
+
+    CredentialsNotMatch:
+      description: Invalid credentials
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "Credentials do not match. Please try again."
+            error_code: "CREDENTIALS_NOT_MATCH"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "User not found. Please register first."
+            error_code: "NOT_FOUND"
+
+    FailParseRequest:
+      description: Failed to parse request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "Failed to parse request. Please check your request format."
+            error_code: "FAIL_PARSE_REQUEST"
 
     InternalServerError:
       description: Internal server error
@@ -164,21 +163,11 @@ components:
             error_code: "INTERNAL_SERVER_ERROR"
             trace_id: "652e0a03-1c0a-404a-ac47-685d7ecb22d8"
 
-    FailParseRequest:
-      description: Failed to parse request
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            message: "Failed to parse request. Please check your request format."
-            error_code: "FAIL_PARSE_REQUEST"
-
 tags:
   - name: Auth
     description: Authentication and authorization operations
   - name: Users
-    description: User profile management operations
+    description: User management operations
 
 paths:
   /auth/register/otp:
@@ -197,26 +186,16 @@ paths:
                 - email
               properties:
                 email:
-                  $ref: '#/components/schemas/EmailField'
+                  type: string
+                  format: email
+                  maxLength: 320
       responses:
         '204':
           description: Success - OTP sent successfully
         '400':
           $ref: '#/components/responses/FailParseRequest'
         '422':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "There are invalid fields in your request. Please check and try again"
-                detail:
-                  - email:
-                      tag: "required"
-                      param: ""
-                      translation: "Email is a required field"
-                error_code: "VALIDATION_ERROR"
+          $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -237,41 +216,21 @@ paths:
                 - otp
               properties:
                 email:
-                  $ref: '#/components/schemas/EmailField'
+                  type: string
+                  format: email
                 otp:
-                  $ref: '#/components/schemas/OTPField'
+                  type: string
+                  examples:
+                    - "123456"
       responses:
         '204':
           description: Success - OTP verification successful
         '400':
           $ref: '#/components/responses/FailParseRequest'
         '401':
-          description: Invalid OTP
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "Invalid OTP. Please try again or request a new OTP."
-                error_code: "INVALID_OTP"
+          $ref: '#/components/responses/InvalidOTP'
         '422':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "There are invalid fields in your request. Please check and try again"
-                detail:
-                  - email:
-                      tag: "required"
-                      param: ""
-                      translation: "Email is a required field"
-                  - otp:
-                      tag: "required"
-                      param: ""
-                      translation: "OTP is a required field"
-                error_code: "VALIDATION_ERROR"
+          $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -294,56 +253,53 @@ paths:
                 - password
               properties:
                 email:
-                  $ref: '#/components/schemas/EmailField'
+                  type: string
+                  format: email
+                  maxLength: 320
                 otp:
-                  $ref: '#/components/schemas/OTPField'
-                name:
                   type: string
                   examples:
-                    - "I Putu Natha Kusuma"
+                    - "123456"
+                name:
+                  type: string
+                  minLength: 3
+                  maxLength: 100
+                  pattern: "^[\x00-\x7F]*$"  # ASCII characters only
+                  examples:
+                    - "Natha Kusuma"
                 password:
-                  $ref: '#/components/schemas/PasswordField'
+                  type: string
+                  minLength: 8
+                  maxLength: 72
+                  pattern: "^[\x00-\x7F]*$"  # ASCII characters only
       responses:
         '201':
           description: Success
-          $ref: '#/components/responses/LoginSuccess'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - access_token
+                  - refresh_token
+                  - user
+                properties:
+                  access_token:
+                    type: string
+                    examples:
+                      - "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                  refresh_token:
+                    type: string
+                    examples:
+                      - "zvXQxgxN2pQD4kci41lhnkwfXKAXtt2l"
+                  user:
+                    $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/FailParseRequest'
         '401':
-          description: Invalid OTP
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "Invalid OTP. Please try again or request a new OTP."
-                error_code: "INVALID_OTP"
+          $ref: '#/components/responses/InvalidOTP'
         '422':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "There are invalid fields in your request. Please check and try again"
-                detail:
-                  - email:
-                      tag: "required"
-                      param: ""
-                      translation: "Email is a required field"
-                  - otp:
-                      tag: "required"
-                      param: ""
-                      translation: "OTP is a required field"
-                  - name:
-                      tag: "required"
-                      param: ""
-                      translation: "Name is a required field"
-                  - password:
-                      tag: "required"
-                      param: ""
-                      translation: "Password is a required field"
-                error_code: "VALIDATION_ERROR"
+          $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -364,51 +320,41 @@ paths:
                 - password
               properties:
                 email:
-                  $ref: '#/components/schemas/EmailField'
+                  type: string
+                  format: email
                 password:
-                  $ref: '#/components/schemas/PasswordField'
+                  type: string
+                  pattern: "^[\x00-\x7F]*$"  # ASCII characters only
       responses:
         '200':
           description: Success
-          $ref: '#/components/responses/LoginSuccess'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - access_token
+                  - refresh_token
+                  - user
+                properties:
+                  access_token:
+                    type: string
+                    examples:
+                      - "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                  refresh_token:
+                    type: string
+                    examples:
+                      - "zvXQxgxN2pQD4kci41lhnkwfXKAXtt2l"
+                  user:
+                    $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/FailParseRequest'
         '401':
-          description: Credentials Not Match
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "Credentials do not match. Please try again."
-                error_code: "CREDENTIALS_NOT_MATCH"
+          $ref: '#/components/responses/CredentialsNotMatch'
         '404':
-          description: User Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "User not found. Please register first."
-                error_code: "NOT_FOUND"
+          $ref: '#/components/responses/NotFound'
         '422':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "There are invalid fields in your request. Please check and try again"
-                detail:
-                  - email:
-                      tag: "required"
-                      param: ""
-                      translation: "Email is a required field"
-                  - password:
-                      tag: "required"
-                      param: ""
-                      translation: "Password is a required field"
-                error_code: "VALIDATION_ERROR"
+          $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -430,29 +376,35 @@ paths:
                 refresh_token:
                   type: string
                   examples:
-                    - "8up9Ltl48d1EtzpffHGScCJTpyNGcyPq"
+                    - "zvXQxgxN2pQD4kci41lhnkwfXKAXtt2l"
       responses:
         '200':
           description: Success
-          $ref: '#/components/responses/LoginSuccess'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - access_token
+                  - refresh_token
+                  - user
+                properties:
+                  access_token:
+                    type: string
+                    examples:
+                      - "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                  refresh_token:
+                    type: string
+                    examples:
+                      - "zvXQxgxN2pQD4kci41lhnkwfXKAXtt2l"
+                  user:
+                    $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/FailParseRequest'
         '401':
           $ref: '#/components/responses/InvalidRefreshToken'
         '422':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "There are invalid fields in your request. Please check and try again"
-                detail:
-                  - refresh_token:
-                      tag: "required"
-                      param: ""
-                      translation: "RefreshToken is a required field"
-                error_code: "VALIDATION_ERROR"
+          $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -488,26 +440,15 @@ paths:
                 - email
               properties:
                 email:
-                  $ref: '#/components/schemas/EmailField'
+                  type: string
+                  format: email
       responses:
         '204':
           description: Success - OTP sent successfully
         '400':
           $ref: '#/components/responses/FailParseRequest'
         '422':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "There are invalid fields in your request. Please check and try again"
-                detail:
-                  - email:
-                      tag: "required"
-                      param: ""
-                      translation: "Email is a required field"
-                error_code: "VALIDATION_ERROR"
+          $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -529,48 +470,41 @@ paths:
                 - new_password
               properties:
                 email:
-                  $ref: '#/components/schemas/EmailField'
+                  type: string
+                  format: email
                 otp:
-                  $ref: '#/components/schemas/OTPField'
+                  type: string
+                  examples:
+                    - "123456"
                 new_password:
-                  $ref: '#/components/schemas/PasswordField'
+                  type: string
+                  minLength: 8
+                  maxLength: 72
+                  pattern: "^[\x00-\x7F]*$"  # ASCII characters only
       responses:
         '200':
           description: Success
-          $ref: '#/components/responses/LoginSuccess'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - access_token
+                  - refresh_token
+                  - user
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/FailParseRequest'
         '401':
-          description: Invalid OTP
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "Invalid OTP. Please try again or request a new OTP."
-                error_code: "INVALID_OTP"
+          $ref: '#/components/responses/InvalidOTP'
         '422':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "There are invalid fields in your request. Please check and try again"
-                detail:
-                  - email:
-                      tag: "required"
-                      param: ""
-                      translation: "Email is a required field"
-                  - otp:
-                      tag: "required"
-                      param: ""
-                      translation: "OTP is a required field"
-                  - new_password:
-                      tag: "required"
-                      param: ""
-                      translation: "NewPassword is a required field"
-                error_code: "VALIDATION_ERROR"
+          $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -595,7 +529,7 @@ paths:
                   maxLength: 100
                   pattern: "^[\x00-\x7F]*$"  # ASCII characters only
                   examples:
-                    - "Natha Kusuma"
+                    - "Natha Kusuma :)"
                 bio:
                   type: string
                   maxLength: 500
@@ -609,22 +543,6 @@ paths:
         '401':
           $ref: '#/components/responses/AuthenticationError'
         '422':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "There are invalid fields in your request. Please check and try again"
-                detail:
-                  - name:
-                      tag: "min"
-                      param: "3"
-                      translation: "Name must be at least 3 characters in length"
-                  - bio:
-                      tag: "max"
-                      param: "500"
-                      translation: "Bio must be a maximum of 500 characters in length"
-                error_code: "VALIDATION_ERROR"
+          $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalServerError'

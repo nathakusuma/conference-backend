@@ -480,7 +480,7 @@ func mockLoginExpectations(mocks *authServiceMocks, ctx context.Context, email, 
 	mocks.authRepo.EXPECT().
 		CreateSession(ctx, mock.MatchedBy(func(session *entity.Session) bool {
 			return session.UserID == user.ID &&
-				len(session.Token) == 64 && // Check refresh token length
+				len(session.Token) == 32 && // Check refresh token length
 				!session.ExpiresAt.IsZero() // Check expiration is set
 		})).
 		Return(nil)

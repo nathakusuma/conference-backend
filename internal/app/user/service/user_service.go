@@ -200,3 +200,32 @@ func (s *userService) UpdateUser(ctx context.Context, id uuid.UUID, req dto.Upda
 
 	return nil
 }
+
+func (s *userService) DeleteUser(ctx context.Context, id uuid.UUID) error {
+	requesterID := ctx.Value("user.id")
+	if requesterID == nil {
+		requesterID = "system"
+	}
+
+	// delete user
+	err := s.userRepo.DeleteUser(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errorpkg.ErrNotFound
+		}
+
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error":        err.Error(),
+			"user.id":      id,
+			"requester.id": requesterID,
+		}, "[UserService][DeleteUser] Failed to delete user")
+		return errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	log.Info(map[string]interface{}{
+		"user.id":      id,
+		"requester.id": requesterID,
+	}, "[UserService][DeleteUser] User deleted")
+
+	return nil
+}

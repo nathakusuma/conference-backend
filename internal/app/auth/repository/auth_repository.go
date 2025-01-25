@@ -30,5 +30,18 @@ func (r *authRepository) GetUserRegisterOTP(ctx context.Context, email string) (
 }
 
 func (r *authRepository) CreateSession(ctx context.Context, session *entity.Session) error {
+	return r.createSession(ctx, r.db, session)
+}
+
+func (r *authRepository) createSession(ctx context.Context, tx sqlx.ExtContext, session *entity.Session) error {
+	query := `INSERT INTO sessions (user_id, token, expires_at)
+				VALUES (:user_id, :token, :expires_at)
+				ON CONFLICT (user_id) DO UPDATE SET token = :token, expires_at = :expires_at`
+
+	_, err := sqlx.NamedExecContext(ctx, tx, query, session)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

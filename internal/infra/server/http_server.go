@@ -5,7 +5,10 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
+	"github.com/nathakusuma/astungkara/internal/app/user/repository"
+	"github.com/nathakusuma/astungkara/internal/app/user/service"
 	"github.com/nathakusuma/astungkara/internal/middleware"
+	"github.com/nathakusuma/astungkara/pkg/bcrypt"
 	"github.com/nathakusuma/astungkara/pkg/log"
 	"github.com/nathakusuma/astungkara/pkg/uuidpkg"
 	"github.com/redis/go-redis/v9"
@@ -65,6 +68,7 @@ func (s *httpServer) MountMiddlewares() {
 
 func (s *httpServer) MountRoutes(db *sqlx.DB, rds *redis.Client) {
 	uuid := uuidpkg.GetUUID()
+	bcryptInstance := bcrypt.GetBcrypt()
 
 	s.app.Get("/", func(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusOK).SendString("Astungkara Healthy")
@@ -73,5 +77,9 @@ func (s *httpServer) MountRoutes(db *sqlx.DB, rds *redis.Client) {
 	api := s.app.Group("/api")
 	v1 := api.Group("/v1")
 
-	fmt.Println(uuid, v1) // TODO: Just to avoid unused variable error
+	userRepository := repository.NewUserRepository(db)
+
+	userService := service.NewUserService(userRepository, bcryptInstance, uuid)
+
+	fmt.Println(v1, userService) // TODO: Just to avoid unused variable error
 }

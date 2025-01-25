@@ -81,6 +81,41 @@ func Test_AuthService_RequestOTPRegisterUser(t *testing.T) {
 		<-emailSent
 	})
 
+	t.Run("error - email sending fails", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+		emailSent := make(chan struct{}, 1)
+
+		// Expect user not found (which is good for registration)
+		mocks.userSvc.EXPECT().
+			GetUserByEmail(ctx, email).
+			Return(nil, errorpkg.ErrNotFound)
+
+		// Expect OTP to be set
+		mocks.authRepo.EXPECT().
+			SetUserRegisterOTP(ctx, email, mock.AnythingOfType("string")).
+			Return(nil)
+
+		// Mock email sending to fail
+		mocks.mailer.EXPECT().
+			Send(
+				email,
+				"[Class Manager] Verify Your Account",
+				"otp_register_user.html",
+				mock.AnythingOfType("map[string]interface {}"),
+			).RunAndReturn(func(_, _, _ string, _ map[string]interface{}) error {
+			emailSent <- struct{}{}
+			return errors.New("email sending error")
+		})
+
+		err := svc.RequestOTPRegisterUser(ctx, email)
+		assert.NoError(t, err)
+
+		// Wait for email sending goroutine to complete
+		<-emailSent
+
+		// It should not return an error because the email sending is done in a goroutine
+	})
+
 	t.Run("error - email already registered", func(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
@@ -360,6 +395,18 @@ func Test_AuthService_RegisterUser(t *testing.T) {
 		assert.NotEmpty(t, resp.AccessToken)
 		assert.NotEmpty(t, resp.RefreshToken)
 		assert.NotNil(t, resp.User)
+	})
+
+	t.Run("error - no OTP found", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserRegisterOTP(ctx, req.Email).
+			Return("", redis.Nil)
+
+		resp, err := svc.RegisterUser(ctx, req)
+		assert.Empty(t, resp)
+		assert.ErrorIs(t, err, errorpkg.ErrInvalidOTP)
 	})
 
 	t.Run("error - invalid OTP", func(t *testing.T) {

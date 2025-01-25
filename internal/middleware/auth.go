@@ -51,10 +51,6 @@ func (m *Middleware) RequireOneOfRoles(roles ...enum.UserRole) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		userRole := ctx.Locals("user.role").(enum.UserRole)
 
-		if userRole == enum.RoleSuperAdmin {
-			return ctx.Next()
-		}
-
 		for _, role := range roles {
 			if userRole == role {
 				return ctx.Next()

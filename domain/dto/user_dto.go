@@ -32,7 +32,7 @@ type CreateUserRequest struct {
 	Name     string        `json:"name" validate:"required,min=3,max=100,ascii"`
 	Email    string        `json:"email" validate:"required,email,max=320"`
 	Password string        `json:"password" validate:"required,min=8,max=72,ascii"`
-	Role     enum.UserRole `json:"role" validate:"required,oneof=user admin superadmin"`
+	Role     enum.UserRole `json:"role" validate:"required,oneof=admin event_coordinator user"`
 }
 
 type UpdateUserRequest struct {

@@ -30,7 +30,7 @@ func (r *authRepository) GetUserRegisterOTP(ctx context.Context, email string) (
 }
 
 func (r *authRepository) DeleteUserRegisterOTP(ctx context.Context, email string) error {
-	return nil
+	return r.rds.Del(ctx, "auth:"+email+":otp").Err()
 }
 
 func (r *authRepository) CreateSession(ctx context.Context, session *entity.Session) error {

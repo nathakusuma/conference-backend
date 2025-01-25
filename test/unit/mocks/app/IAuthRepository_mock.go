@@ -5,6 +5,8 @@ package mocks
 import (
 	context "context"
 
+	entity "github.com/nathakusuma/astungkara/domain/entity"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -19,6 +21,53 @@ type MockIAuthRepository_Expecter struct {
 
 func (_m *MockIAuthRepository) EXPECT() *MockIAuthRepository_Expecter {
 	return &MockIAuthRepository_Expecter{mock: &_m.Mock}
+}
+
+// CreateSession provides a mock function with given fields: ctx, session
+func (_m *MockIAuthRepository) CreateSession(ctx context.Context, session *entity.Session) error {
+	ret := _m.Called(ctx, session)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateSession")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *entity.Session) error); ok {
+		r0 = rf(ctx, session)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockIAuthRepository_CreateSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateSession'
+type MockIAuthRepository_CreateSession_Call struct {
+	*mock.Call
+}
+
+// CreateSession is a helper method to define mock.On call
+//   - ctx context.Context
+//   - session *entity.Session
+func (_e *MockIAuthRepository_Expecter) CreateSession(ctx interface{}, session interface{}) *MockIAuthRepository_CreateSession_Call {
+	return &MockIAuthRepository_CreateSession_Call{Call: _e.mock.On("CreateSession", ctx, session)}
+}
+
+func (_c *MockIAuthRepository_CreateSession_Call) Run(run func(ctx context.Context, session *entity.Session)) *MockIAuthRepository_CreateSession_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*entity.Session))
+	})
+	return _c
+}
+
+func (_c *MockIAuthRepository_CreateSession_Call) Return(_a0 error) *MockIAuthRepository_CreateSession_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockIAuthRepository_CreateSession_Call) RunAndReturn(run func(context.Context, *entity.Session) error) *MockIAuthRepository_CreateSession_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetUserRegisterOTP provides a mock function with given fields: ctx, email

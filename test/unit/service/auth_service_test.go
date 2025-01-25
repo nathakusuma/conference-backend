@@ -2,10 +2,13 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"github.com/google/uuid"
 	"github.com/nathakusuma/astungkara/domain/contract"
+	"github.com/nathakusuma/astungkara/domain/dto"
 	"github.com/nathakusuma/astungkara/domain/entity"
+	"github.com/nathakusuma/astungkara/domain/enum"
 	"github.com/nathakusuma/astungkara/domain/errorpkg"
 	"github.com/nathakusuma/astungkara/internal/app/auth/service"
 	appmocks "github.com/nathakusuma/astungkara/test/unit/mocks/app"
@@ -15,6 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
+	"time"
 )
 
 type authServiceMocks struct {
@@ -168,4 +172,181 @@ func Test_AuthService_CheckOTPRegisterUser(t *testing.T) {
 		err := svc.CheckOTPRegisterUser(ctx, email, otp)
 		assert.ErrorIs(t, err, errorpkg.ErrInvalidOTP)
 	})
+}
+
+func Test_AuthService_LoginUser(t *testing.T) {
+	ctx := context.Background()
+	req := dto.LoginUserRequest{
+		Email:    "test@example.com",
+		Password: "password123",
+	}
+
+	t.Run("success", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		userID := uuid.New()
+		user := &entity.User{
+			ID:           userID,
+			Email:        req.Email,
+			PasswordHash: req.Password,
+			Role:         enum.RoleUser,
+		}
+
+		mockLoginExpectations(mocks, ctx, req.Email, req.Password, userID)
+
+		resp, err := svc.LoginUser(ctx, req)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, resp.AccessToken)
+		assert.NotEmpty(t, resp.RefreshToken)
+		assert.Equal(t, user.Email, resp.User.Email)
+	})
+
+	t.Run("error - user not found", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.userSvc.EXPECT().
+			GetUserByEmail(ctx, req.Email).
+			Return(nil, sql.ErrNoRows)
+
+		resp, err := svc.LoginUser(ctx, req)
+		assert.Empty(t, resp)
+		assert.ErrorIs(t, err, errorpkg.ErrNotFound)
+	})
+
+	t.Run("error - get user unexpected error", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.userSvc.EXPECT().
+			GetUserByEmail(ctx, req.Email).
+			Return(nil, errors.New("db error"))
+
+		resp, err := svc.LoginUser(ctx, req)
+		assert.Empty(t, resp)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
+	})
+
+	t.Run("error - invalid credentials", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		passwordHash := "hashed_password"
+		user := &entity.User{
+			Email:        req.Email,
+			PasswordHash: passwordHash,
+		}
+
+		mocks.userSvc.EXPECT().
+			GetUserByEmail(ctx, req.Email).
+			Return(user, nil)
+
+		mocks.bcrypt.EXPECT().
+			Compare(req.Password, passwordHash).
+			Return(false)
+
+		resp, err := svc.LoginUser(ctx, req)
+		assert.Empty(t, resp)
+		assert.ErrorIs(t, err, errorpkg.ErrCredentialsNotMatch)
+	})
+
+	t.Run("error - jwt creation fails", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		passwordHash := "hashed_password"
+		user := &entity.User{
+			ID:           uuid.New(),
+			Email:        req.Email,
+			PasswordHash: passwordHash,
+			Role:         enum.RoleUser,
+		}
+
+		mocks.userSvc.EXPECT().
+			GetUserByEmail(ctx, req.Email).
+			Return(user, nil)
+
+		mocks.bcrypt.EXPECT().
+			Compare(req.Password, passwordHash).
+			Return(true)
+
+		mocks.jwt.EXPECT().
+			Create(user.ID, user.Role).
+			Return("", errors.New("jwt error"))
+
+		mocks.authRepo.EXPECT().
+			CreateSession(ctx, mock.Anything).
+			Return(nil)
+
+		resp, err := svc.LoginUser(ctx, req)
+		assert.Empty(t, resp)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
+	})
+
+	t.Run("error - create session fails", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		passwordHash := "hashed_password"
+		user := &entity.User{
+			ID:           uuid.New(),
+			Email:        req.Email,
+			PasswordHash: passwordHash,
+			Role:         enum.RoleUser,
+		}
+
+		mocks.userSvc.EXPECT().
+			GetUserByEmail(ctx, req.Email).
+			Return(user, nil)
+
+		mocks.bcrypt.EXPECT().
+			Compare(req.Password, passwordHash).
+			Return(true)
+
+		mocks.jwt.EXPECT().
+			Create(user.ID, user.Role).
+			Return("access_token", nil)
+
+		mocks.authRepo.EXPECT().
+			CreateSession(ctx, mock.MatchedBy(func(session *entity.Session) bool {
+				return session.UserID == user.ID
+			})).
+			Return(errors.New("db error"))
+
+		resp, err := svc.LoginUser(ctx, req)
+		assert.Empty(t, resp)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
+	})
+}
+
+// Helper function to set up common login expectations
+func mockLoginExpectations(mocks *authServiceMocks, ctx context.Context, email, password string, userID uuid.UUID) {
+	passwordHash := "hashed_password"
+	user := &entity.User{
+		ID:           userID,
+		Email:        email,
+		PasswordHash: passwordHash,
+		Role:         enum.RoleUser,
+		Name:         "Test User",
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	mocks.userSvc.EXPECT().
+		GetUserByEmail(ctx, email).
+		Return(user, nil)
+
+	mocks.bcrypt.EXPECT().
+		Compare(password, passwordHash).
+		Return(true)
+
+	mocks.jwt.EXPECT().
+		Create(user.ID, user.Role).
+		Return("access_token", nil)
+
+	mocks.authRepo.EXPECT().
+		CreateSession(ctx, mock.MatchedBy(func(session *entity.Session) bool {
+			return session.UserID == user.ID &&
+				len(session.Token) == 64 && // Check refresh token length
+				!session.ExpiresAt.IsZero() // Check expiration is set
+		})).
+		Return(nil)
 }

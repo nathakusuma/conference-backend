@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/nathakusuma/astungkara/domain/contract"
+	"github.com/nathakusuma/astungkara/domain/dto"
 	"github.com/nathakusuma/astungkara/domain/errorpkg"
 	"github.com/nathakusuma/astungkara/internal/infra/env"
 	"github.com/nathakusuma/astungkara/pkg/bcrypt"
@@ -115,4 +116,10 @@ func (s *authService) CheckOTPRegisterUser(ctx context.Context, email, otp strin
 	}
 
 	return nil
+}
+
+func (s *authService) LoginUser(ctx context.Context,
+	req dto.LoginUserRequest) (dto.LoginResponse, error) {
+
+	return dto.LoginResponse{}, nil
 }

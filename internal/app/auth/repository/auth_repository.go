@@ -94,3 +94,15 @@ func (r *authRepository) deleteSession(ctx context.Context, tx sqlx.ExtContext, 
 func (r *authRepository) DeleteSession(ctx context.Context, userID uuid.UUID) error {
 	return r.deleteSession(ctx, r.db, userID)
 }
+
+func (r *authRepository) SetUserResetPasswordOTP(ctx context.Context, email, otp string) error {
+	return r.rds.Set(ctx, "auth:"+email+":reset_password_otp", otp, 10*time.Minute).Err()
+}
+
+func (r *authRepository) GetUserResetPasswordOTP(ctx context.Context, email string) (string, error) {
+	return r.rds.Get(ctx, "auth:"+email+":reset_password_otp").Result()
+}
+
+func (r *authRepository) DeleteUserResetPasswordOTP(ctx context.Context, email string) error {
+	return r.rds.Del(ctx, "auth:"+email+":reset_password_otp").Err()
+}

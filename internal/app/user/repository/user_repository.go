@@ -62,3 +62,27 @@ func (r *userRepository) GetUserByField(ctx context.Context, field, value string
 
 	return &user, nil
 }
+
+func (r *userRepository) updateUser(ctx context.Context, tx sqlx.ExtContext, user *entity.User) error {
+	_, err := sqlx.NamedExecContext(
+		ctx,
+		tx,
+		`UPDATE users
+		SET name = :name,
+			email = :email,
+			password_hash = :password_hash,
+			role = :role,
+			updated_at = now()
+		WHERE id = :id`,
+		user,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *userRepository) UpdateUser(ctx context.Context, user *entity.User) error {
+	return r.updateUser(ctx, r.conn, user)
+}

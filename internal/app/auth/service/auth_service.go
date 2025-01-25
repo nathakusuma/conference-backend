@@ -368,3 +368,109 @@ func (s *authService) Logout(ctx context.Context) error {
 
 	return nil
 }
+
+func (s *authService) RequestOTPResetPassword(ctx context.Context, email string) error {
+	// check if email is registered
+	_, err := s.userSvc.GetUserByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, errorpkg.ErrNotFound) {
+			return errorpkg.ErrNotFound.WithMessage("User not found. Please register.")
+		}
+
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+			"email": email,
+		}, "[AuthService][RequestOTPResetPassword] failed to get user by email")
+
+		return errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	// generate otp
+	otp := strconv.Itoa(randgen.RandomNumber(6))
+
+	// save otp
+	err = s.repo.SetUserResetPasswordOTP(ctx, email, otp)
+	if err != nil {
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+			"email": email,
+		}, "[AuthService][RequestOTPResetPassword] failed to save otp")
+
+		return errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	// send otp to email
+	go func() {
+		err = s.mailer.Send(
+			email,
+			"[Astungkara] Reset Password",
+			"otp_reset_password.html",
+			map[string]interface{}{
+				"otp": otp,
+			})
+
+		if err != nil {
+			log.Error(map[string]interface{}{
+				"error": err.Error(),
+			}, "[AuthService][RequestOTPResetPassword] failed to send email")
+		}
+	}()
+
+	return nil
+}
+
+func (s *authService) ResetPassword(ctx context.Context, req dto.ResetPasswordRequest) (dto.LoginResponse, error) {
+	// get otp
+	savedOtp, err := s.repo.GetUserResetPasswordOTP(ctx, req.Email)
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return dto.LoginResponse{}, errorpkg.ErrInvalidOTP
+		}
+
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+			"email": req.Email,
+		}, "[AuthService][ResetPassword] failed to get otp")
+
+		return dto.LoginResponse{}, errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	if savedOtp != req.OTP {
+		return dto.LoginResponse{}, errorpkg.ErrInvalidOTP
+	}
+
+	// delete otp
+	err = s.repo.SetUserResetPasswordOTP(ctx, req.Email, "")
+	if err != nil {
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+			"email": req.Email,
+		}, "[AuthService][ResetPassword] failed to delete otp")
+
+		return dto.LoginResponse{}, errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	// update user password
+	if err = s.userSvc.UpdatePassword(ctx, req.Email, req.NewPassword); err != nil {
+		if errors.Is(err, errorpkg.ErrNotFound) {
+			// Small chance, since we've already checked it on RequestOTPResetPassword
+			return dto.LoginResponse{}, err
+		}
+
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error":      err.Error(),
+			"user.email": req.Email,
+		}, "[AuthService][ResetPassword] failed to update user password")
+
+		return dto.LoginResponse{}, errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	log.Info(map[string]interface{}{
+		"user.email": req.Email,
+	}, "[AuthService][ResetPassword] password reset")
+
+	return s.LoginUser(ctx, dto.LoginUserRequest{
+		Email:    req.Email,
+		Password: req.NewPassword,
+	})
+}

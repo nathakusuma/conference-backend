@@ -25,7 +25,7 @@ type IAuthService interface {
 	RequestOTPRegisterUser(ctx context.Context, email string) error
 	CheckOTPRegisterUser(ctx context.Context, email, otp string) error
 	RegisterUser(ctx context.Context, req dto.RegisterUserRequest) (dto.LoginResponse, error)
-	LoginUser(ctx context.Context, req dto.LoginUserRequest) (dto.LoginResponse, error)
+	Login(ctx context.Context, req dto.LoginUserRequest) (dto.LoginResponse, error)
 
 	RefreshToken(ctx context.Context, refreshToken string) (dto.LoginResponse, error)
 	Logout(ctx context.Context) error

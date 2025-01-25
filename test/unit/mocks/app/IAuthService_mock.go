@@ -71,12 +71,12 @@ func (_c *MockIAuthService_CheckOTPRegisterUser_Call) RunAndReturn(run func(cont
 	return _c
 }
 
-// LoginUser provides a mock function with given fields: ctx, req
-func (_m *MockIAuthService) LoginUser(ctx context.Context, req dto.LoginUserRequest) (dto.LoginResponse, error) {
+// Login provides a mock function with given fields: ctx, req
+func (_m *MockIAuthService) Login(ctx context.Context, req dto.LoginUserRequest) (dto.LoginResponse, error) {
 	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
-		panic("no return value specified for LoginUser")
+		panic("no return value specified for Login")
 	}
 
 	var r0 dto.LoginResponse
@@ -99,31 +99,31 @@ func (_m *MockIAuthService) LoginUser(ctx context.Context, req dto.LoginUserRequ
 	return r0, r1
 }
 
-// MockIAuthService_LoginUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LoginUser'
-type MockIAuthService_LoginUser_Call struct {
+// MockIAuthService_Login_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Login'
+type MockIAuthService_Login_Call struct {
 	*mock.Call
 }
 
-// LoginUser is a helper method to define mock.On call
+// Login is a helper method to define mock.On call
 //   - ctx context.Context
 //   - req dto.LoginUserRequest
-func (_e *MockIAuthService_Expecter) LoginUser(ctx interface{}, req interface{}) *MockIAuthService_LoginUser_Call {
-	return &MockIAuthService_LoginUser_Call{Call: _e.mock.On("LoginUser", ctx, req)}
+func (_e *MockIAuthService_Expecter) Login(ctx interface{}, req interface{}) *MockIAuthService_Login_Call {
+	return &MockIAuthService_Login_Call{Call: _e.mock.On("Login", ctx, req)}
 }
 
-func (_c *MockIAuthService_LoginUser_Call) Run(run func(ctx context.Context, req dto.LoginUserRequest)) *MockIAuthService_LoginUser_Call {
+func (_c *MockIAuthService_Login_Call) Run(run func(ctx context.Context, req dto.LoginUserRequest)) *MockIAuthService_Login_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(dto.LoginUserRequest))
 	})
 	return _c
 }
 
-func (_c *MockIAuthService_LoginUser_Call) Return(_a0 dto.LoginResponse, _a1 error) *MockIAuthService_LoginUser_Call {
+func (_c *MockIAuthService_Login_Call) Return(_a0 dto.LoginResponse, _a1 error) *MockIAuthService_Login_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockIAuthService_LoginUser_Call) RunAndReturn(run func(context.Context, dto.LoginUserRequest) (dto.LoginResponse, error)) *MockIAuthService_LoginUser_Call {
+func (_c *MockIAuthService_Login_Call) RunAndReturn(run func(context.Context, dto.LoginUserRequest) (dto.LoginResponse, error)) *MockIAuthService_Login_Call {
 	_c.Call.Return(run)
 	return _c
 }

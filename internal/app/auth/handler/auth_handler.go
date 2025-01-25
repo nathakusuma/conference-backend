@@ -109,7 +109,7 @@ func (c *authHandler) loginUser() fiber.Handler {
 			return err
 		}
 
-		resp, err := c.svc.LoginUser(ctx.Context(), req)
+		resp, err := c.svc.Login(ctx.Context(), req)
 		if err != nil {
 			return err
 		}

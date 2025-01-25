@@ -1,32 +1,39 @@
 package env
 
 import (
+	"fmt"
 	"github.com/iamolegga/enviper"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"os"
 	"sync"
+	"time"
 )
 
 type Env struct {
-	AppEnv       string `mapstructure:"APP_ENV"`
-	AppPort      string `mapstructure:"APP_PORT"`
-	AppURL       string `mapstructure:"APP_URL"`
-	FrontendURL  string `mapstructure:"FRONTEND_URL"`
-	DBHost       string `mapstructure:"DB_HOST"`
-	DBPort       string `mapstructure:"DB_PORT"`
-	DBUser       string `mapstructure:"DB_USER"`
-	DBPass       string `mapstructure:"DB_PASS"`
-	DBName       string `mapstructure:"DB_NAME"`
-	RedisHost    string `mapstructure:"REDIS_HOST"`
-	RedisPort    string `mapstructure:"REDIS_PORT"`
-	RedisPass    string `mapstructure:"REDIS_PASS"`
-	RedisDB      int    `mapstructure:"REDIS_DB"`
-	SmtpHost     string `mapstructure:"SMTP_HOST"`
-	SmtpPort     int    `mapstructure:"SMTP_PORT"`
-	SmtpUsername string `mapstructure:"SMTP_USERNAME"`
-	SmtpEmail    string `mapstructure:"SMTP_EMAIL"`
-	SmtpPassword string `mapstructure:"SMTP_PASSWORD"`
+	AppEnv                   string        `mapstructure:"APP_ENV"`
+	AppPort                  string        `mapstructure:"APP_PORT"`
+	AppURL                   string        `mapstructure:"APP_URL"`
+	FrontendURL              string        `mapstructure:"FRONTEND_URL"`
+	AppName                  string        `mapstructure:"APP_NAME"`
+	DBHost                   string        `mapstructure:"DB_HOST"`
+	DBPort                   string        `mapstructure:"DB_PORT"`
+	DBUser                   string        `mapstructure:"DB_USER"`
+	DBPass                   string        `mapstructure:"DB_PASS"`
+	DBName                   string        `mapstructure:"DB_NAME"`
+	RedisHost                string        `mapstructure:"REDIS_HOST"`
+	RedisPort                string        `mapstructure:"REDIS_PORT"`
+	RedisPass                string        `mapstructure:"REDIS_PASS"`
+	RedisDB                  int           `mapstructure:"REDIS_DB"`
+	JwtAccessSecretKey       []byte        // JWT_ACCESS_SECRET_KEY
+	JwtAccessExpireDuration  time.Duration // JWT_ACCESS_EXPIRE_DURATION
+	JwtRefreshSecretKey      []byte        // JWT_REFRESH_SECRET_KEY
+	JwtRefreshExpireDuration time.Duration // JWT_REFRESH_EXPIRE_DURATION
+	SmtpHost                 string        `mapstructure:"SMTP_HOST"`
+	SmtpPort                 int           `mapstructure:"SMTP_PORT"`
+	SmtpUsername             string        `mapstructure:"SMTP_USERNAME"`
+	SmtpEmail                string        `mapstructure:"SMTP_EMAIL"`
+	SmtpPassword             string        `mapstructure:"SMTP_PASSWORD"`
 }
 
 var (
@@ -75,6 +82,15 @@ func NewEnv() *Env {
 				return
 			}
 		}
+
+		// Process JWT configurations
+		env.JwtAccessSecretKey = []byte(viperInstance.GetString("JWT_ACCESS_SECRET_KEY"))
+		env.JwtRefreshSecretKey = []byte(viperInstance.GetString("JWT_REFRESH_SECRET_KEY"))
+
+		// Parse durations
+		if err := parseDurations(env); err != nil {
+			log.Fatal().Msgf("[ENV] failed to parse durations: %s", err.Error())
+		}
 	})
 
 	return env
@@ -87,4 +103,21 @@ func GetEnv() *Env {
 // SetEnv is used in testing to set the environment
 func SetEnv(mockEnv *Env) {
 	env = mockEnv
+}
+
+// Helper function to parse JWT durations
+func parseDurations(env *Env) error {
+	var err error
+
+	env.JwtAccessExpireDuration, err = time.ParseDuration(viperInstance.GetString("JWT_ACCESS_EXPIRE_DURATION"))
+	if err != nil {
+		return fmt.Errorf("invalid JWT_ACCESS_EXPIRE_DURATION: %w", err)
+	}
+
+	env.JwtRefreshExpireDuration, err = time.ParseDuration(viperInstance.GetString("JWT_REFRESH_EXPIRE_DURATION"))
+	if err != nil {
+		return fmt.Errorf("invalid JWT_REFRESH_EXPIRE_DURATION: %w", err)
+	}
+
+	return nil
 }

@@ -47,7 +47,6 @@ func (r *userRepository) GetUserByField(ctx context.Context, field, value string
 			email,
 			password_hash,
 			role,
-			auth_method,
 			created_at,
 			updated_at,
 			deleted_at

@@ -92,7 +92,7 @@ func Test_UserService_CreateUser(t *testing.T) {
 		resultID, err := svc.CreateUser(ctx, req)
 		assert.Equal(t, uuid.Nil, resultID)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 
 	t.Run("error - email already exists", func(t *testing.T) {
@@ -156,7 +156,7 @@ func Test_UserService_CreateUser(t *testing.T) {
 		resultID, err := svc.CreateUser(ctx, req)
 		assert.Equal(t, uuid.Nil, resultID)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 }
 
@@ -207,6 +207,6 @@ func Test_UserService_GetUserByEmail(t *testing.T) {
 		user, err := svc.GetUserByEmail(ctx, email)
 		assert.Nil(t, user)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 }

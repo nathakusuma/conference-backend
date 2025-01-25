@@ -70,6 +70,66 @@ func (_c *MockIUserRepository_CreateUser_Call) RunAndReturn(run func(context.Con
 	return _c
 }
 
+// GetUserByField provides a mock function with given fields: ctx, field, value
+func (_m *MockIUserRepository) GetUserByField(ctx context.Context, field string, value string) (*entity.User, error) {
+	ret := _m.Called(ctx, field, value)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserByField")
+	}
+
+	var r0 *entity.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*entity.User, error)); ok {
+		return rf(ctx, field, value)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *entity.User); ok {
+		r0 = rf(ctx, field, value)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, field, value)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockIUserRepository_GetUserByField_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserByField'
+type MockIUserRepository_GetUserByField_Call struct {
+	*mock.Call
+}
+
+// GetUserByField is a helper method to define mock.On call
+//   - ctx context.Context
+//   - field string
+//   - value string
+func (_e *MockIUserRepository_Expecter) GetUserByField(ctx interface{}, field interface{}, value interface{}) *MockIUserRepository_GetUserByField_Call {
+	return &MockIUserRepository_GetUserByField_Call{Call: _e.mock.On("GetUserByField", ctx, field, value)}
+}
+
+func (_c *MockIUserRepository_GetUserByField_Call) Run(run func(ctx context.Context, field string, value string)) *MockIUserRepository_GetUserByField_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *MockIUserRepository_GetUserByField_Call) Return(_a0 *entity.User, _a1 error) *MockIUserRepository_GetUserByField_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockIUserRepository_GetUserByField_Call) RunAndReturn(run func(context.Context, string, string) (*entity.User, error)) *MockIUserRepository_GetUserByField_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockIUserRepository creates a new instance of MockIUserRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockIUserRepository(t interface {

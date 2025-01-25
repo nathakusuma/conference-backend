@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"github.com/nathakusuma/astungkara/domain/contract"
 	"github.com/nathakusuma/astungkara/domain/dto"
@@ -240,10 +241,10 @@ func (s *authService) LoginUser(ctx context.Context,
 
 	// Generate and store refresh token
 	go func() {
-		refreshToken := randgen.RandomString(64)
+		refreshToken := randgen.RandomString(32)
 		err := s.repo.CreateSession(ctx, &entity.Session{
-			UserID:    user.ID,
 			Token:     refreshToken,
+			UserID:    user.ID,
 			ExpiresAt: time.Now().Add(env.GetEnv().JwtRefreshExpireDuration),
 		})
 		refreshTokenCh <- tokenResult{token: refreshToken, err: err}
@@ -288,6 +289,67 @@ func (s *authService) LoginUser(ctx context.Context,
 	log.Info(map[string]interface{}{
 		"email": req.Email,
 	}, "[AuthService][LoginUser] user logged in")
+
+	return resp, nil
+}
+
+func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (dto.LoginResponse, error) {
+	var resp dto.LoginResponse
+
+	session, err := s.repo.GetSessionByToken(ctx, refreshToken)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return resp, errorpkg.ErrInvalidRefreshToken
+		}
+
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+		}, "[AuthService][RefreshToken] failed to get session by token")
+
+		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	if session.ExpiresAt.Before(time.Now()) {
+		return resp, errorpkg.ErrInvalidRefreshToken
+	}
+
+	// get user by session
+	user, err := s.userSvc.GetUserByID(ctx, session.UserID)
+	if err != nil {
+		if errors.Is(err, errorpkg.ErrNotFound) {
+			return resp, errorpkg.ErrNotFound.WithMessage("User not found. Please register first.")
+		}
+
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error":  err.Error(),
+			"userID": session.UserID,
+		}, "[AuthService][RefreshToken] failed to get user by ID")
+
+		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	accessToken, err := s.jwt.Create(user.ID, user.Role)
+	if err != nil {
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error":   err.Error(),
+			"user_id": user.ID,
+		}, "[AuthService][RefreshToken] failed to generate access token")
+
+		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	userResp := dto.UserResponse{}
+	userResp.PopulateFromEntity(user)
+	resp = dto.LoginResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		User:         &userResp,
+	}
+
+	log.Info(map[string]interface{}{
+		"user.id":    user.ID,
+		"user.email": user.Email,
+	}, "[AuthService][RefreshToken] token refreshed")
 
 	return resp, nil
 }

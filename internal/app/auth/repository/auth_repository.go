@@ -49,3 +49,22 @@ func (r *authRepository) createSession(ctx context.Context, tx sqlx.ExtContext, 
 
 	return nil
 }
+
+func (r *authRepository) GetSessionByToken(ctx context.Context, token string) (*entity.Session, error) {
+	var session entity.Session
+
+	statement := `SELECT
+    		token,
+			user_id,
+			expires_at
+		FROM sessions
+		WHERE token = $1
+		`
+
+	err := r.db.GetContext(ctx, &session, statement, token)
+	if err != nil {
+		return nil, err
+	}
+
+	return &session, nil
+}

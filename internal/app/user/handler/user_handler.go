@@ -93,7 +93,11 @@ func (c *userHandler) getUser(param string) fiber.Handler {
 		}
 
 		resp := dto.UserResponse{}
-		resp.PopulateFromEntity(user)
+		if param == "me" {
+			resp.PopulateFromEntity(user)
+		} else {
+			resp.PopulateMinimalFromEntity(user)
+		}
 
 		return ctx.Status(fiber.StatusOK).JSON(map[string]interface{}{
 			"user": resp,

@@ -9,6 +9,13 @@ type CheckOTPRegisterUserRequest struct {
 	OTP   string `json:"otp" validate:"required"`
 }
 
+type RegisterUserRequest struct {
+	Email    string `json:"email" validate:"required,email,max=320"`
+	OTP      string `json:"otp" validate:"required"`
+	Name     string `json:"name" validate:"required,min=3,max=100,ascii"`
+	Password string `json:"password" validate:"required,min=8,max=72,ascii"`
+}
+
 type LoginUserRequest struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,ascii"`

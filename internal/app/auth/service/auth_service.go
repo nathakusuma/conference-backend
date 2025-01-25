@@ -120,6 +120,12 @@ func (s *authService) CheckOTPRegisterUser(ctx context.Context, email, otp strin
 	return nil
 }
 
+func (s *authService) RegisterUser(ctx context.Context,
+	req dto.RegisterUserRequest) (dto.LoginResponse, error) {
+
+	return dto.LoginResponse{}, nil
+}
+
 func (s *authService) LoginUser(ctx context.Context,
 	req dto.LoginUserRequest) (dto.LoginResponse, error) {
 

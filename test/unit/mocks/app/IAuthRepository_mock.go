@@ -70,6 +70,53 @@ func (_c *MockIAuthRepository_CreateSession_Call) RunAndReturn(run func(context.
 	return _c
 }
 
+// DeleteUserRegisterOTP provides a mock function with given fields: ctx, email
+func (_m *MockIAuthRepository) DeleteUserRegisterOTP(ctx context.Context, email string) error {
+	ret := _m.Called(ctx, email)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteUserRegisterOTP")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, email)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockIAuthRepository_DeleteUserRegisterOTP_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteUserRegisterOTP'
+type MockIAuthRepository_DeleteUserRegisterOTP_Call struct {
+	*mock.Call
+}
+
+// DeleteUserRegisterOTP is a helper method to define mock.On call
+//   - ctx context.Context
+//   - email string
+func (_e *MockIAuthRepository_Expecter) DeleteUserRegisterOTP(ctx interface{}, email interface{}) *MockIAuthRepository_DeleteUserRegisterOTP_Call {
+	return &MockIAuthRepository_DeleteUserRegisterOTP_Call{Call: _e.mock.On("DeleteUserRegisterOTP", ctx, email)}
+}
+
+func (_c *MockIAuthRepository_DeleteUserRegisterOTP_Call) Run(run func(ctx context.Context, email string)) *MockIAuthRepository_DeleteUserRegisterOTP_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockIAuthRepository_DeleteUserRegisterOTP_Call) Return(_a0 error) *MockIAuthRepository_DeleteUserRegisterOTP_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockIAuthRepository_DeleteUserRegisterOTP_Call) RunAndReturn(run func(context.Context, string) error) *MockIAuthRepository_DeleteUserRegisterOTP_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUserRegisterOTP provides a mock function with given fields: ctx, email
 func (_m *MockIAuthRepository) GetUserRegisterOTP(ctx context.Context, email string) (string, error) {
 	ret := _m.Called(ctx, email)

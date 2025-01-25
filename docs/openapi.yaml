@@ -132,6 +132,127 @@ paths:
                 error_code: "INTERNAL_SERVER_ERROR"
                 trace_id: "652e0a03-1c0a-404a-ac47-685d7ecb22d8"
 
+  /auth/login:
+    post:
+      summary: Login User
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  examples:
+                    - "astungkara@nathakusuma.com"
+                password:
+                  type: string
+                  format: password
+                  examples:
+                    - "very-secure-password"
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - access_token
+                  - refresh_token
+                  - user
+                properties:
+                  access_token:
+                    type: string
+                    examples:
+                      - "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                  refresh_token:
+                    type: string
+                    examples:
+                      - "J53IGokemur6PAPrymVTeOneDdmZk5n4RSJAKDuUxy6SryHyc5vT0gAkT3SXA4ET"
+                  user:
+                    type: object
+                    required:
+                      - id
+                      - name
+                      - email
+                      - role
+                      - created_at
+                      - updated_at
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        examples:
+                          - "01948552-2721-787b-8d97-7c463fda4a9e"
+                      name:
+                        type: string
+                        examples:
+                          - "I Putu Natha Kusuma"
+                      email:
+                        type: string
+                        format: email
+                        examples:
+                          - "astungkara@nathakusuma.com"
+                      role:
+                        type: string
+                        enum: [ super_admin, admin, user, event_coordinator ]
+                        examples:
+                          - "user"
+                      created_at:
+                        type: string
+                        format: date-time
+                        examples:
+                          - "2025-01-25T12:05:41.282989Z"
+                      updated_at:
+                        type: string
+                        format: date-time
+                        examples:
+                          - "2025-01-25T12:05:41.282989Z"
+        '401':
+          description: Credentials Not Match
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "Credentials do not match. Please try again."
+                error_code: "CREDENTIALS_NOT_MATCH"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "There are invalid fields in your request. Please check and try again"
+                detail:
+                  - email:
+                      tag: "required"
+                      param: ""
+                      translation: "Email is a required field"
+                  - password:
+                      tag: "required"
+                      param: ""
+                      translation: "Password is a required field"
+                error_code: "VALIDATION_ERROR"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "Something went wrong in our server. Please try again later."
+                error_code: "INTERNAL_SERVER_ERROR"
+                trace_id: "652e0a03-1c0a-404a-ac47-685d7ecb22d8"
+
 components:
   schemas:
     ErrorResponse:

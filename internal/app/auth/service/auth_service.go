@@ -59,8 +59,8 @@ func (s *authService) RequestOTPRegisterUser(ctx context.Context, email string) 
 
 	if !errors.Is(err, errorpkg.ErrNotFound) {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"email": email,
+			"error":      err.Error(),
+			"user.email": email,
 		}, "[AuthService][RequestOTPRegisterUser] failed to get user by email")
 
 		return errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -73,8 +73,8 @@ func (s *authService) RequestOTPRegisterUser(ctx context.Context, email string) 
 	err = s.repo.SetOTPRegisterUser(ctx, email, otp)
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"email": email,
+			"error":      err.Error(),
+			"user.email": email,
 		}, "[AuthService][RequestOTPRegisterUser] failed to save otp")
 
 		return errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -109,8 +109,8 @@ func (s *authService) CheckOTPRegisterUser(ctx context.Context, email, otp strin
 		}
 
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"email": email,
+			"error":      err.Error(),
+			"user.email": email,
 		}, "[AuthService][CheckOTPRegisterUser] failed to get otp")
 
 		return errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -141,8 +141,8 @@ func (s *authService) RegisterUser(ctx context.Context,
 		}
 
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"req":   loggableReq,
+			"error":   err.Error(),
+			"request": loggableReq,
 		}, "[AuthService][RegisterUser] failed to get otp")
 
 		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -156,8 +156,8 @@ func (s *authService) RegisterUser(ctx context.Context,
 	err = s.repo.DeleteOTPRegisterUser(ctx, req.Email)
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"req":   loggableReq,
+			"error":   err.Error(),
+			"request": loggableReq,
 		}, "[AuthService][RegisterUser] failed to delete otp")
 
 		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -172,15 +172,15 @@ func (s *authService) RegisterUser(ctx context.Context,
 	})
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"req":   loggableReq,
+			"error":   err.Error(),
+			"request": loggableReq,
 		}, "[AuthService][RegisterUser] failed to create user")
 
 		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
 	}
 
 	log.Info(map[string]interface{}{
-		"email": req.Email,
+		"user.email": req.Email,
 	}, "[AuthService][RegisterUser] user registered")
 
 	// login user
@@ -203,8 +203,8 @@ func (s *authService) LoginUser(ctx context.Context,
 		}
 
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"email": req.Email,
+			"error":      err.Error(),
+			"user.email": req.Email,
 		}, "[AuthService][LoginUser] failed to get user by email")
 
 		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -250,8 +250,8 @@ func (s *authService) LoginUser(ctx context.Context,
 		case accessResult = <-accessTokenCh:
 			if accessResult.err != nil {
 				traceID := log.ErrorWithTraceID(map[string]interface{}{
-					"error": accessResult.err.Error(),
-					"email": req.Email,
+					"error":      accessResult.err.Error(),
+					"user.email": req.Email,
 				}, "[AuthService][LoginUser] failed to generate access token")
 				return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
 			}
@@ -260,8 +260,8 @@ func (s *authService) LoginUser(ctx context.Context,
 		case refreshResult = <-refreshTokenCh:
 			if refreshResult.err != nil {
 				traceID := log.ErrorWithTraceID(map[string]interface{}{
-					"error": refreshResult.err.Error(),
-					"email": req.Email,
+					"error":      refreshResult.err.Error(),
+					"user.email": req.Email,
 				}, "[AuthService][LoginUser] failed to store auth session")
 				return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
 			}
@@ -278,7 +278,7 @@ func (s *authService) LoginUser(ctx context.Context,
 	}
 
 	log.Info(map[string]interface{}{
-		"email": req.Email,
+		"user.email": req.Email,
 	}, "[AuthService][LoginUser] user logged in")
 
 	return resp, nil
@@ -312,8 +312,8 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (dt
 		}
 
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error":  err.Error(),
-			"userID": authSession.UserID,
+			"error":   err.Error(),
+			"user.id": authSession.UserID,
 		}, "[AuthService][RefreshToken] failed to get user by ID")
 
 		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -323,7 +323,7 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (dt
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
 			"error":   err.Error(),
-			"user_id": user.ID,
+			"user.id": user.ID,
 		}, "[AuthService][RefreshToken] failed to generate access token")
 
 		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -355,8 +355,8 @@ func (s *authService) Logout(ctx context.Context) error {
 		}
 
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error":  err.Error(),
-			"userID": userID,
+			"error":   err.Error(),
+			"user.id": userID,
 		}, "[AuthService][Logout] failed to delete auth session")
 
 		return errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -378,8 +378,8 @@ func (s *authService) RequestOTPResetPassword(ctx context.Context, email string)
 		}
 
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"email": email,
+			"error":      err.Error(),
+			"user.email": email,
 		}, "[AuthService][RequestOTPResetPassword] failed to get user by email")
 
 		return errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -392,8 +392,8 @@ func (s *authService) RequestOTPResetPassword(ctx context.Context, email string)
 	err = s.repo.SetOTPResetPassword(ctx, email, otp)
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"email": email,
+			"error":      err.Error(),
+			"user.email": email,
 		}, "[AuthService][RequestOTPResetPassword] failed to save otp")
 
 		return errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -428,8 +428,8 @@ func (s *authService) ResetPassword(ctx context.Context, req dto.ResetPasswordRe
 		}
 
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"email": req.Email,
+			"error":      err.Error(),
+			"user.email": req.Email,
 		}, "[AuthService][ResetPassword] failed to get otp")
 
 		return dto.LoginResponse{}, errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -443,8 +443,8 @@ func (s *authService) ResetPassword(ctx context.Context, req dto.ResetPasswordRe
 	err = s.repo.SetOTPResetPassword(ctx, req.Email, "")
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"email": req.Email,
+			"error":      err.Error(),
+			"user.email": req.Email,
 		}, "[AuthService][ResetPassword] failed to delete otp")
 
 		return dto.LoginResponse{}, errorpkg.ErrInternalServer.WithTraceID(traceID)

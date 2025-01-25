@@ -27,8 +27,8 @@ func (u *UserResponse) PopulateFromEntity(user *entity.User) *UserResponse {
 }
 
 type CreateUserRequest struct {
-	Name         string        `json:"name" validate:"required,min=3,max=100,ascii"`
-	Email        string        `json:"email" validate:"required,email,max=320"`
-	PasswordHash string        `json:"password" validate:"required,len=60"`
-	Role         enum.UserRole `json:"role" validate:"required,oneof=user admin superadmin"`
+	Name     string        `json:"name" validate:"required,min=3,max=100,ascii"`
+	Email    string        `json:"email" validate:"required,email,max=320"`
+	Password string        `json:"password" validate:"required,min=8,max=72,ascii"`
+	Role     enum.UserRole `json:"role" validate:"required,oneof=user admin superadmin"`
 }

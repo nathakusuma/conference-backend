@@ -48,10 +48,10 @@ func Test_UserService_CreateUser(t *testing.T) {
 		svc, mocks := setupUserServiceTest(t)
 
 		req := &dto.CreateUserRequest{
-			Name:         "Test User",
-			Email:        "test@example.com",
-			PasswordHash: hashedPassword,
-			Role:         enum.RoleUser,
+			Name:     "Test User",
+			Email:    "test@example.com",
+			Password: hashedPassword,
+			Role:     enum.RoleUser,
 		}
 
 		// Expect UUID generation
@@ -59,13 +59,18 @@ func Test_UserService_CreateUser(t *testing.T) {
 			NewV7().
 			Return(userID, nil)
 
+		// Expect password hashing
+		mocks.bcrypt.EXPECT().
+			Hash(req.Password).
+			Return(hashedPassword, nil)
+
 		// Expect user creation
 		mocks.userRepo.EXPECT().
 			CreateUser(ctx, &entity.User{
 				ID:           userID,
 				Name:         req.Name,
 				Email:        req.Email,
-				PasswordHash: req.PasswordHash,
+				PasswordHash: req.Password,
 				Role:         req.Role,
 			}).
 			Return(nil)
@@ -79,9 +84,9 @@ func Test_UserService_CreateUser(t *testing.T) {
 		svc, mocks := setupUserServiceTest(t)
 
 		req := &dto.CreateUserRequest{
-			Name:         "Test User",
-			Email:        "test@example.com",
-			PasswordHash: hashedPassword,
+			Name:     "Test User",
+			Email:    "test@example.com",
+			Password: hashedPassword,
 		}
 
 		// Expect UUID generation to fail
@@ -99,15 +104,20 @@ func Test_UserService_CreateUser(t *testing.T) {
 		svc, mocks := setupUserServiceTest(t)
 
 		req := &dto.CreateUserRequest{
-			Name:         "Test User",
-			Email:        "test@example.com",
-			PasswordHash: hashedPassword,
+			Name:     "Test User",
+			Email:    "test@example.com",
+			Password: hashedPassword,
 		}
 
 		// Expect UUID generation
 		mocks.uuid.EXPECT().
 			NewV7().
 			Return(userID, nil)
+
+		// Expect password hashing
+		mocks.bcrypt.EXPECT().
+			Hash(req.Password).
+			Return(hashedPassword, nil)
 
 		// Expect user creation to fail with unique constraint violation
 		pgErr := &pgconn.PgError{
@@ -118,7 +128,7 @@ func Test_UserService_CreateUser(t *testing.T) {
 				ID:           userID,
 				Name:         req.Name,
 				Email:        req.Email,
-				PasswordHash: req.PasswordHash,
+				PasswordHash: req.Password,
 				Role:         req.Role,
 			}).
 			Return(pgErr)
@@ -132,9 +142,9 @@ func Test_UserService_CreateUser(t *testing.T) {
 		svc, mocks := setupUserServiceTest(t)
 
 		req := &dto.CreateUserRequest{
-			Name:         "Test User",
-			Email:        "test@example.com",
-			PasswordHash: hashedPassword,
+			Name:     "Test User",
+			Email:    "test@example.com",
+			Password: hashedPassword,
 		}
 
 		// Expect UUID generation
@@ -142,13 +152,18 @@ func Test_UserService_CreateUser(t *testing.T) {
 			NewV7().
 			Return(userID, nil)
 
+		hashedPassword := "hashed_password"
+		mocks.bcrypt.EXPECT().
+			Hash(req.Password).
+			Return(hashedPassword, nil)
+
 		// Expect user creation to fail
 		mocks.userRepo.EXPECT().
 			CreateUser(ctx, &entity.User{
 				ID:           userID,
 				Name:         req.Name,
 				Email:        req.Email,
-				PasswordHash: req.PasswordHash,
+				PasswordHash: hashedPassword,
 				Role:         req.Role,
 			}).
 			Return(errors.New("db error"))

@@ -40,8 +40,8 @@ func (r *authRepository) CreateSession(ctx context.Context, session *entity.Sess
 }
 
 func (r *authRepository) createSession(ctx context.Context, tx sqlx.ExtContext, session *entity.Session) error {
-	query := `INSERT INTO sessions (user_id, token, expires_at)
-				VALUES (:user_id, :token, :expires_at)
+	query := `INSERT INTO sessions (token, user_id, expires_at)
+				VALUES (:token, :user_id, :expires_at)
 				ON CONFLICT (user_id) DO UPDATE SET token = :token, expires_at = :expires_at`
 
 	_, err := sqlx.NamedExecContext(ctx, tx, query, session)

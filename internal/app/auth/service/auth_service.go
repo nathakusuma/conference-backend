@@ -84,7 +84,7 @@ func (s *authService) RequestOTPRegisterUser(ctx context.Context, email string) 
 	go func() {
 		err = s.mailer.Send(
 			email,
-			"[Class Manager] Verify Your Account",
+			"[Astungkara] Verify Your Account",
 			"otp_register_user.html",
 			map[string]interface{}{
 				"otp":  otp,
@@ -163,22 +163,12 @@ func (s *authService) RegisterUser(ctx context.Context,
 		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
 	}
 
-	passwordHash, err := s.bcrypt.Hash(req.Password)
-	if err != nil {
-		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"req":   loggableReq,
-		}, "[AuthService][RegisterUser] failed to hash password")
-
-		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
-	}
-
 	// save user
 	_, err = s.userSvc.CreateUser(ctx, &dto.CreateUserRequest{
-		Name:         req.Name,
-		Email:        req.Email,
-		PasswordHash: passwordHash,
-		Role:         enum.RoleUser,
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: req.Password,
+		Role:     enum.RoleUser,
 	})
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{

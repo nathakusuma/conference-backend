@@ -41,37 +41,34 @@ components:
     # User related schemas
     User:
       type: object
-      required:
-        - id
-        - name
-        - email
-        - role
-        - created_at
-        - updated_at
       properties:
         id:
-          type: string
+          type: [ "string", "null" ]
           format: uuid
           examples:
             - "01948552-2721-787b-8d97-7c463fda4a9e"
         name:
-          type: string
+          type: [ "string", "null" ]
           examples:
             - "I Putu Natha Kusuma"
         email:
-          $ref: '#/components/schemas/EmailField'
+          oneOf:
+            - $ref: '#/components/schemas/EmailField'
+            - type: "null"
         role:
-          type: string
+          type: [ "string", "null" ]
           enum: [ super_admin, admin, user, event_coordinator ]
           examples:
             - "user"
+        bio:
+          type: [ "string", "null" ]
         created_at:
-          type: string
+          type: [ "string", "null" ]
           format: date-time
           examples:
             - "2025-01-25T20:05:41.282989Z"
         updated_at:
-          type: string
+          type: [ "string", "null" ]
           format: date-time
           examples:
             - "2025-01-25T20:05:41.282989Z"
@@ -180,6 +177,8 @@ components:
 tags:
   - name: Auth
     description: Authentication and authorization operations
+  - name: Users
+    description: User profile management operations
 
 paths:
   /auth/register/otp:
@@ -571,6 +570,61 @@ paths:
                       tag: "required"
                       param: ""
                       translation: "NewPassword is a required field"
+                error_code: "VALIDATION_ERROR"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /users:
+    patch:
+      tags:
+        - Users
+      summary: Update User Profile
+      operationId: updateUser
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 3
+                  maxLength: 100
+                  pattern: "^[\x00-\x7F]*$"  # ASCII characters only
+                  examples:
+                    - "Natha Kusuma"
+                bio:
+                  type: string
+                  maxLength: 500
+                  examples:
+                    - "Seorang programmer pemula yang sedang belajar backend"
+      responses:
+        '204':
+          description: Success - User profile updated successfully
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "There are invalid fields in your request. Please check and try again"
+                detail:
+                  - name:
+                      tag: "min"
+                      param: "3"
+                      translation: "Name must be at least 3 characters in length"
+                  - bio:
+                      tag: "max"
+                      param: "500"
+                      translation: "Bio must be a maximum of 500 characters in length"
                 error_code: "VALIDATION_ERROR"
         '500':
           $ref: '#/components/responses/InternalServerError'

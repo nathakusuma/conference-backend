@@ -12,9 +12,9 @@ type IAuthRepository interface {
 	GetUserRegisterOTP(ctx context.Context, email string) (string, error)
 	DeleteUserRegisterOTP(ctx context.Context, email string) error
 
-	CreateSession(ctx context.Context, session *entity.Session) error
-	GetSessionByToken(ctx context.Context, token string) (*entity.Session, error)
-	DeleteSession(ctx context.Context, userID uuid.UUID) error
+	CreateAuthSession(ctx context.Context, authSession *entity.AuthSession) error
+	GetAuthSessionByToken(ctx context.Context, token string) (*entity.AuthSession, error)
+	DeleteAuthSession(ctx context.Context, userID uuid.UUID) error
 
 	SetUserResetPasswordOTP(ctx context.Context, email, otp string) error
 	GetUserResetPasswordOTP(ctx context.Context, email string) (string, error)

@@ -35,16 +35,16 @@ func (r *authRepository) DeleteUserRegisterOTP(ctx context.Context, email string
 	return r.rds.Del(ctx, "auth:"+email+":register_otp").Err()
 }
 
-func (r *authRepository) CreateSession(ctx context.Context, session *entity.Session) error {
-	return r.createSession(ctx, r.db, session)
+func (r *authRepository) CreateAuthSession(ctx context.Context, session *entity.AuthSession) error {
+	return r.createAuthSession(ctx, r.db, session)
 }
 
-func (r *authRepository) createSession(ctx context.Context, tx sqlx.ExtContext, session *entity.Session) error {
-	query := `INSERT INTO sessions (token, user_id, expires_at)
+func (r *authRepository) createAuthSession(ctx context.Context, tx sqlx.ExtContext, authSession *entity.AuthSession) error {
+	query := `INSERT INTO auth_sessions (token, user_id, expires_at)
 				VALUES (:token, :user_id, :expires_at)
 				ON CONFLICT (user_id) DO UPDATE SET token = :token, expires_at = :expires_at`
 
-	_, err := sqlx.NamedExecContext(ctx, tx, query, session)
+	_, err := sqlx.NamedExecContext(ctx, tx, query, authSession)
 	if err != nil {
 		return err
 	}
@@ -52,27 +52,27 @@ func (r *authRepository) createSession(ctx context.Context, tx sqlx.ExtContext, 
 	return nil
 }
 
-func (r *authRepository) GetSessionByToken(ctx context.Context, token string) (*entity.Session, error) {
-	var session entity.Session
+func (r *authRepository) GetAuthSessionByToken(ctx context.Context, token string) (*entity.AuthSession, error) {
+	var authSession entity.AuthSession
 
 	statement := `SELECT
     		token,
 			user_id,
 			expires_at
-		FROM sessions
+		FROM auth_sessions
 		WHERE token = $1
 		`
 
-	err := r.db.GetContext(ctx, &session, statement, token)
+	err := r.db.GetContext(ctx, &authSession, statement, token)
 	if err != nil {
 		return nil, err
 	}
 
-	return &session, nil
+	return &authSession, nil
 }
 
-func (r *authRepository) deleteSession(ctx context.Context, tx sqlx.ExtContext, userID uuid.UUID) error {
-	query := `DELETE FROM sessions WHERE user_id = $1`
+func (r *authRepository) deleteAuthSession(ctx context.Context, tx sqlx.ExtContext, userID uuid.UUID) error {
+	query := `DELETE FROM auth_sessions WHERE user_id = $1`
 
 	res, err := tx.ExecContext(ctx, query, userID)
 	if err != nil {
@@ -91,8 +91,8 @@ func (r *authRepository) deleteSession(ctx context.Context, tx sqlx.ExtContext, 
 	return nil
 }
 
-func (r *authRepository) DeleteSession(ctx context.Context, userID uuid.UUID) error {
-	return r.deleteSession(ctx, r.db, userID)
+func (r *authRepository) DeleteAuthSession(ctx context.Context, userID uuid.UUID) error {
+	return r.deleteAuthSession(ctx, r.db, userID)
 }
 
 func (r *authRepository) SetUserResetPasswordOTP(ctx context.Context, email, otp string) error {

@@ -25,17 +25,17 @@ func (_m *MockIAuthRepository) EXPECT() *MockIAuthRepository_Expecter {
 	return &MockIAuthRepository_Expecter{mock: &_m.Mock}
 }
 
-// CreateSession provides a mock function with given fields: ctx, session
-func (_m *MockIAuthRepository) CreateSession(ctx context.Context, session *entity.Session) error {
-	ret := _m.Called(ctx, session)
+// CreateAuthSession provides a mock function with given fields: ctx, authSession
+func (_m *MockIAuthRepository) CreateAuthSession(ctx context.Context, authSession *entity.AuthSession) error {
+	ret := _m.Called(ctx, authSession)
 
 	if len(ret) == 0 {
-		panic("no return value specified for CreateSession")
+		panic("no return value specified for CreateAuthSession")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *entity.Session) error); ok {
-		r0 = rf(ctx, session)
+	if rf, ok := ret.Get(0).(func(context.Context, *entity.AuthSession) error); ok {
+		r0 = rf(ctx, authSession)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -43,41 +43,41 @@ func (_m *MockIAuthRepository) CreateSession(ctx context.Context, session *entit
 	return r0
 }
 
-// MockIAuthRepository_CreateSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateSession'
-type MockIAuthRepository_CreateSession_Call struct {
+// MockIAuthRepository_CreateAuthSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAuthSession'
+type MockIAuthRepository_CreateAuthSession_Call struct {
 	*mock.Call
 }
 
-// CreateSession is a helper method to define mock.On call
+// CreateAuthSession is a helper method to define mock.On call
 //   - ctx context.Context
-//   - session *entity.Session
-func (_e *MockIAuthRepository_Expecter) CreateSession(ctx interface{}, session interface{}) *MockIAuthRepository_CreateSession_Call {
-	return &MockIAuthRepository_CreateSession_Call{Call: _e.mock.On("CreateSession", ctx, session)}
+//   - authSession *entity.AuthSession
+func (_e *MockIAuthRepository_Expecter) CreateAuthSession(ctx interface{}, authSession interface{}) *MockIAuthRepository_CreateAuthSession_Call {
+	return &MockIAuthRepository_CreateAuthSession_Call{Call: _e.mock.On("CreateAuthSession", ctx, authSession)}
 }
 
-func (_c *MockIAuthRepository_CreateSession_Call) Run(run func(ctx context.Context, session *entity.Session)) *MockIAuthRepository_CreateSession_Call {
+func (_c *MockIAuthRepository_CreateAuthSession_Call) Run(run func(ctx context.Context, authSession *entity.AuthSession)) *MockIAuthRepository_CreateAuthSession_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*entity.Session))
+		run(args[0].(context.Context), args[1].(*entity.AuthSession))
 	})
 	return _c
 }
 
-func (_c *MockIAuthRepository_CreateSession_Call) Return(_a0 error) *MockIAuthRepository_CreateSession_Call {
+func (_c *MockIAuthRepository_CreateAuthSession_Call) Return(_a0 error) *MockIAuthRepository_CreateAuthSession_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockIAuthRepository_CreateSession_Call) RunAndReturn(run func(context.Context, *entity.Session) error) *MockIAuthRepository_CreateSession_Call {
+func (_c *MockIAuthRepository_CreateAuthSession_Call) RunAndReturn(run func(context.Context, *entity.AuthSession) error) *MockIAuthRepository_CreateAuthSession_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// DeleteSession provides a mock function with given fields: ctx, userID
-func (_m *MockIAuthRepository) DeleteSession(ctx context.Context, userID uuid.UUID) error {
+// DeleteAuthSession provides a mock function with given fields: ctx, userID
+func (_m *MockIAuthRepository) DeleteAuthSession(ctx context.Context, userID uuid.UUID) error {
 	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for DeleteSession")
+		panic("no return value specified for DeleteAuthSession")
 	}
 
 	var r0 error
@@ -90,31 +90,31 @@ func (_m *MockIAuthRepository) DeleteSession(ctx context.Context, userID uuid.UU
 	return r0
 }
 
-// MockIAuthRepository_DeleteSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSession'
-type MockIAuthRepository_DeleteSession_Call struct {
+// MockIAuthRepository_DeleteAuthSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAuthSession'
+type MockIAuthRepository_DeleteAuthSession_Call struct {
 	*mock.Call
 }
 
-// DeleteSession is a helper method to define mock.On call
+// DeleteAuthSession is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID uuid.UUID
-func (_e *MockIAuthRepository_Expecter) DeleteSession(ctx interface{}, userID interface{}) *MockIAuthRepository_DeleteSession_Call {
-	return &MockIAuthRepository_DeleteSession_Call{Call: _e.mock.On("DeleteSession", ctx, userID)}
+func (_e *MockIAuthRepository_Expecter) DeleteAuthSession(ctx interface{}, userID interface{}) *MockIAuthRepository_DeleteAuthSession_Call {
+	return &MockIAuthRepository_DeleteAuthSession_Call{Call: _e.mock.On("DeleteAuthSession", ctx, userID)}
 }
 
-func (_c *MockIAuthRepository_DeleteSession_Call) Run(run func(ctx context.Context, userID uuid.UUID)) *MockIAuthRepository_DeleteSession_Call {
+func (_c *MockIAuthRepository_DeleteAuthSession_Call) Run(run func(ctx context.Context, userID uuid.UUID)) *MockIAuthRepository_DeleteAuthSession_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(uuid.UUID))
 	})
 	return _c
 }
 
-func (_c *MockIAuthRepository_DeleteSession_Call) Return(_a0 error) *MockIAuthRepository_DeleteSession_Call {
+func (_c *MockIAuthRepository_DeleteAuthSession_Call) Return(_a0 error) *MockIAuthRepository_DeleteAuthSession_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockIAuthRepository_DeleteSession_Call) RunAndReturn(run func(context.Context, uuid.UUID) error) *MockIAuthRepository_DeleteSession_Call {
+func (_c *MockIAuthRepository_DeleteAuthSession_Call) RunAndReturn(run func(context.Context, uuid.UUID) error) *MockIAuthRepository_DeleteAuthSession_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -213,24 +213,24 @@ func (_c *MockIAuthRepository_DeleteUserResetPasswordOTP_Call) RunAndReturn(run 
 	return _c
 }
 
-// GetSessionByToken provides a mock function with given fields: ctx, token
-func (_m *MockIAuthRepository) GetSessionByToken(ctx context.Context, token string) (*entity.Session, error) {
+// GetAuthSessionByToken provides a mock function with given fields: ctx, token
+func (_m *MockIAuthRepository) GetAuthSessionByToken(ctx context.Context, token string) (*entity.AuthSession, error) {
 	ret := _m.Called(ctx, token)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetSessionByToken")
+		panic("no return value specified for GetAuthSessionByToken")
 	}
 
-	var r0 *entity.Session
+	var r0 *entity.AuthSession
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*entity.Session, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*entity.AuthSession, error)); ok {
 		return rf(ctx, token)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *entity.Session); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) *entity.AuthSession); ok {
 		r0 = rf(ctx, token)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*entity.Session)
+			r0 = ret.Get(0).(*entity.AuthSession)
 		}
 	}
 
@@ -243,31 +243,31 @@ func (_m *MockIAuthRepository) GetSessionByToken(ctx context.Context, token stri
 	return r0, r1
 }
 
-// MockIAuthRepository_GetSessionByToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSessionByToken'
-type MockIAuthRepository_GetSessionByToken_Call struct {
+// MockIAuthRepository_GetAuthSessionByToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAuthSessionByToken'
+type MockIAuthRepository_GetAuthSessionByToken_Call struct {
 	*mock.Call
 }
 
-// GetSessionByToken is a helper method to define mock.On call
+// GetAuthSessionByToken is a helper method to define mock.On call
 //   - ctx context.Context
 //   - token string
-func (_e *MockIAuthRepository_Expecter) GetSessionByToken(ctx interface{}, token interface{}) *MockIAuthRepository_GetSessionByToken_Call {
-	return &MockIAuthRepository_GetSessionByToken_Call{Call: _e.mock.On("GetSessionByToken", ctx, token)}
+func (_e *MockIAuthRepository_Expecter) GetAuthSessionByToken(ctx interface{}, token interface{}) *MockIAuthRepository_GetAuthSessionByToken_Call {
+	return &MockIAuthRepository_GetAuthSessionByToken_Call{Call: _e.mock.On("GetAuthSessionByToken", ctx, token)}
 }
 
-func (_c *MockIAuthRepository_GetSessionByToken_Call) Run(run func(ctx context.Context, token string)) *MockIAuthRepository_GetSessionByToken_Call {
+func (_c *MockIAuthRepository_GetAuthSessionByToken_Call) Run(run func(ctx context.Context, token string)) *MockIAuthRepository_GetAuthSessionByToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
 
-func (_c *MockIAuthRepository_GetSessionByToken_Call) Return(_a0 *entity.Session, _a1 error) *MockIAuthRepository_GetSessionByToken_Call {
+func (_c *MockIAuthRepository_GetAuthSessionByToken_Call) Return(_a0 *entity.AuthSession, _a1 error) *MockIAuthRepository_GetAuthSessionByToken_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockIAuthRepository_GetSessionByToken_Call) RunAndReturn(run func(context.Context, string) (*entity.Session, error)) *MockIAuthRepository_GetSessionByToken_Call {
+func (_c *MockIAuthRepository_GetAuthSessionByToken_Call) RunAndReturn(run func(context.Context, string) (*entity.AuthSession, error)) *MockIAuthRepository_GetAuthSessionByToken_Call {
 	_c.Call.Return(run)
 	return _c
 }

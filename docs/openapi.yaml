@@ -133,7 +133,7 @@ components:
             invalidBearerToken:
               summary: Invalid Bearer Token
               value:
-                message: "Your session is invalid. Please renew your session."
+                message: "Your auth session is invalid. Please renew your auth session."
                 error_code: "INVALID_BEARER_TOKEN"
 
     InvalidRefreshToken:
@@ -143,7 +143,7 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
           example:
-            message: "Session is invalid. Please login again."
+            message: "Auth session is invalid. Please login again."
             error_code: "INVALID_REFRESH_TOKEN"
 
     ForbiddenRole:

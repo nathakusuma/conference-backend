@@ -308,13 +308,13 @@ func Test_AuthService_LoginUser(t *testing.T) {
 			Create(user.ID, user.Role).
 			Return("", errors.New("jwt error"))
 
-		// Expect CreateSession to be called but we don't care about the result
+		// Expect CreateAuthSession to be called but we don't care about the result
 		// since the JWT error should be returned first
 		mocks.authRepo.EXPECT().
-			CreateSession(ctx, mock.MatchedBy(func(session *entity.Session) bool {
-				return session.UserID == user.ID &&
-					len(session.Token) == 32 &&
-					!session.ExpiresAt.IsZero()
+			CreateAuthSession(ctx, mock.MatchedBy(func(authSession *entity.AuthSession) bool {
+				return authSession.UserID == user.ID &&
+					len(authSession.Token) == 32 &&
+					!authSession.ExpiresAt.IsZero()
 			})).
 			Return(nil).
 			Maybe() // This may or may not be called depending on goroutine scheduling
@@ -325,7 +325,7 @@ func Test_AuthService_LoginUser(t *testing.T) {
 		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 
-	t.Run("error - create session fails", func(t *testing.T) {
+	t.Run("error - create auth session fails", func(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		passwordHash := "hashed_password"
@@ -350,12 +350,12 @@ func Test_AuthService_LoginUser(t *testing.T) {
 			Create(user.ID, user.Role).
 			Return("access_token", nil)
 
-		// Session creation fails
+		// AuthSession creation fails
 		mocks.authRepo.EXPECT().
-			CreateSession(ctx, mock.MatchedBy(func(session *entity.Session) bool {
-				return session.UserID == user.ID &&
-					len(session.Token) == 32 &&
-					!session.ExpiresAt.IsZero()
+			CreateAuthSession(ctx, mock.MatchedBy(func(authSession *entity.AuthSession) bool {
+				return authSession.UserID == user.ID &&
+					len(authSession.Token) == 32 &&
+					!authSession.ExpiresAt.IsZero()
 			})).
 			Return(errors.New("db error"))
 
@@ -391,10 +391,10 @@ func Test_AuthService_LoginUser(t *testing.T) {
 			Return("", errors.New("jwt error"))
 
 		mocks.authRepo.EXPECT().
-			CreateSession(ctx, mock.MatchedBy(func(session *entity.Session) bool {
-				return session.UserID == user.ID &&
-					len(session.Token) == 32 &&
-					!session.ExpiresAt.IsZero()
+			CreateAuthSession(ctx, mock.MatchedBy(func(authSession *entity.AuthSession) bool {
+				return authSession.UserID == user.ID &&
+					len(authSession.Token) == 32 &&
+					!authSession.ExpiresAt.IsZero()
 			})).
 			Return(errors.New("db error")).
 			Maybe() // This may or may not be called depending on goroutine scheduling
@@ -548,10 +548,10 @@ func mockLoginExpectations(mocks *authServiceMocks, ctx context.Context, email, 
 		Return("access_token", nil)
 
 	mocks.authRepo.EXPECT().
-		CreateSession(ctx, mock.MatchedBy(func(session *entity.Session) bool {
-			return session.UserID == user.ID &&
-				len(session.Token) == 32 && // Check refresh token length
-				!session.ExpiresAt.IsZero() // Check expiration is set
+		CreateAuthSession(ctx, mock.MatchedBy(func(authSession *entity.AuthSession) bool {
+			return authSession.UserID == user.ID &&
+				len(authSession.Token) == 32 && // Check refresh token length
+				!authSession.ExpiresAt.IsZero() // Check expiration is set
 		})).
 		Return(nil)
 }
@@ -564,8 +564,8 @@ func Test_AuthService_RefreshToken(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
-		// Setup session
-		session := &entity.Session{
+		// Setup auth session
+		authSession := &entity.AuthSession{
 			Token:     refreshToken,
 			UserID:    userID,
 			ExpiresAt: time.Now().Add(time.Hour), // Valid future expiration
@@ -583,8 +583,8 @@ func Test_AuthService_RefreshToken(t *testing.T) {
 
 		// Set up expectations
 		mocks.authRepo.EXPECT().
-			GetSessionByToken(ctx, refreshToken).
-			Return(session, nil)
+			GetAuthSessionByToken(ctx, refreshToken).
+			Return(authSession, nil)
 
 		mocks.userSvc.EXPECT().
 			GetUserByID(ctx, userID).
@@ -605,11 +605,11 @@ func Test_AuthService_RefreshToken(t *testing.T) {
 		assert.Equal(t, user.Role, resp.User.Role)
 	})
 
-	t.Run("error - session not found", func(t *testing.T) {
+	t.Run("error - auth session not found", func(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetSessionByToken(ctx, refreshToken).
+			GetAuthSessionByToken(ctx, refreshToken).
 			Return(nil, sql.ErrNoRows)
 
 		resp, err := svc.RefreshToken(ctx, refreshToken)
@@ -617,11 +617,11 @@ func Test_AuthService_RefreshToken(t *testing.T) {
 		assert.ErrorIs(t, err, errorpkg.ErrInvalidRefreshToken)
 	})
 
-	t.Run("error - get session unexpected error", func(t *testing.T) {
+	t.Run("error - get auth session unexpected error", func(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetSessionByToken(ctx, refreshToken).
+			GetAuthSessionByToken(ctx, refreshToken).
 			Return(nil, errors.New("db error"))
 
 		resp, err := svc.RefreshToken(ctx, refreshToken)
@@ -630,19 +630,19 @@ func Test_AuthService_RefreshToken(t *testing.T) {
 		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 
-	t.Run("error - expired session", func(t *testing.T) {
+	t.Run("error - expired auth session", func(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
-		// Setup expired session
-		session := &entity.Session{
+		// Setup expired auth session
+		authSession := &entity.AuthSession{
 			Token:     refreshToken,
 			UserID:    userID,
 			ExpiresAt: time.Now().Add(-time.Hour), // Expired
 		}
 
 		mocks.authRepo.EXPECT().
-			GetSessionByToken(ctx, refreshToken).
-			Return(session, nil)
+			GetAuthSessionByToken(ctx, refreshToken).
+			Return(authSession, nil)
 
 		resp, err := svc.RefreshToken(ctx, refreshToken)
 		assert.Empty(t, resp)
@@ -652,16 +652,16 @@ func Test_AuthService_RefreshToken(t *testing.T) {
 	t.Run("error - user not found", func(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
-		// Setup valid session
-		session := &entity.Session{
+		// Setup valid auth session
+		authSession := &entity.AuthSession{
 			Token:     refreshToken,
 			UserID:    userID,
 			ExpiresAt: time.Now().Add(time.Hour),
 		}
 
 		mocks.authRepo.EXPECT().
-			GetSessionByToken(ctx, refreshToken).
-			Return(session, nil)
+			GetAuthSessionByToken(ctx, refreshToken).
+			Return(authSession, nil)
 
 		mocks.userSvc.EXPECT().
 			GetUserByID(ctx, userID).
@@ -675,16 +675,16 @@ func Test_AuthService_RefreshToken(t *testing.T) {
 	t.Run("error - get user unexpected error", func(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
-		// Setup valid session
-		session := &entity.Session{
+		// Setup valid auth session
+		authSession := &entity.AuthSession{
 			Token:     refreshToken,
 			UserID:    userID,
 			ExpiresAt: time.Now().Add(time.Hour),
 		}
 
 		mocks.authRepo.EXPECT().
-			GetSessionByToken(ctx, refreshToken).
-			Return(session, nil)
+			GetAuthSessionByToken(ctx, refreshToken).
+			Return(authSession, nil)
 
 		mocks.userSvc.EXPECT().
 			GetUserByID(ctx, userID).
@@ -699,8 +699,8 @@ func Test_AuthService_RefreshToken(t *testing.T) {
 	t.Run("error - jwt creation fails", func(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
-		// Setup valid session
-		session := &entity.Session{
+		// Setup valid auth session
+		authSession := &entity.AuthSession{
 			Token:     refreshToken,
 			UserID:    userID,
 			ExpiresAt: time.Now().Add(time.Hour),
@@ -713,8 +713,8 @@ func Test_AuthService_RefreshToken(t *testing.T) {
 		}
 
 		mocks.authRepo.EXPECT().
-			GetSessionByToken(ctx, refreshToken).
-			Return(session, nil)
+			GetAuthSessionByToken(ctx, refreshToken).
+			Return(authSession, nil)
 
 		mocks.userSvc.EXPECT().
 			GetUserByID(ctx, userID).
@@ -739,29 +739,29 @@ func Test_AuthService_Logout(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			DeleteSession(ctx, userID).
+			DeleteAuthSession(ctx, userID).
 			Return(nil)
 
 		err := svc.Logout(ctx)
 		assert.NoError(t, err)
 	})
 
-	t.Run("error - session not found", func(t *testing.T) {
+	t.Run("error - auth session not found", func(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			DeleteSession(ctx, userID).
+			DeleteAuthSession(ctx, userID).
 			Return(sql.ErrNoRows)
 
 		err := svc.Logout(ctx)
 		assert.ErrorIs(t, err, errorpkg.ErrInvalidBearerToken)
 	})
 
-	t.Run("error - delete session fails", func(t *testing.T) {
+	t.Run("error - delete auth session fails", func(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			DeleteSession(ctx, userID).
+			DeleteAuthSession(ctx, userID).
 			Return(errors.New("db error"))
 
 		err := svc.Logout(ctx)

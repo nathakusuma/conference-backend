@@ -233,7 +233,7 @@ func (s *authService) LoginUser(ctx context.Context,
 	// Generate and store refresh token
 	go func() {
 		refreshToken := randgen.RandomString(32)
-		err := s.repo.CreateSession(ctx, &entity.Session{
+		err := s.repo.CreateAuthSession(ctx, &entity.AuthSession{
 			Token:     refreshToken,
 			UserID:    user.ID,
 			ExpiresAt: time.Now().Add(env.GetEnv().JwtRefreshExpireDuration),
@@ -262,7 +262,7 @@ func (s *authService) LoginUser(ctx context.Context,
 				traceID := log.ErrorWithTraceID(map[string]interface{}{
 					"error": refreshResult.err.Error(),
 					"email": req.Email,
-				}, "[AuthService][LoginUser] failed to store session")
+				}, "[AuthService][LoginUser] failed to store auth session")
 				return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
 			}
 			resultsReceived++
@@ -287,7 +287,7 @@ func (s *authService) LoginUser(ctx context.Context,
 func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (dto.LoginResponse, error) {
 	var resp dto.LoginResponse
 
-	session, err := s.repo.GetSessionByToken(ctx, refreshToken)
+	authSession, err := s.repo.GetAuthSessionByToken(ctx, refreshToken)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return resp, errorpkg.ErrInvalidRefreshToken
@@ -295,17 +295,17 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (dt
 
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
 			"error": err.Error(),
-		}, "[AuthService][RefreshToken] failed to get session by token")
+		}, "[AuthService][RefreshToken] failed to get auth session by token")
 
 		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
 	}
 
-	if session.ExpiresAt.Before(time.Now()) {
+	if authSession.ExpiresAt.Before(time.Now()) {
 		return resp, errorpkg.ErrInvalidRefreshToken
 	}
 
-	// get user by session
-	user, err := s.userSvc.GetUserByID(ctx, session.UserID)
+	// get user by authSession
+	user, err := s.userSvc.GetUserByID(ctx, authSession.UserID)
 	if err != nil {
 		if errors.Is(err, errorpkg.ErrNotFound) {
 			return resp, errorpkg.ErrNotFound.WithMessage("User not found. Please register first.")
@@ -313,7 +313,7 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (dt
 
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
 			"error":  err.Error(),
-			"userID": session.UserID,
+			"userID": authSession.UserID,
 		}, "[AuthService][RefreshToken] failed to get user by ID")
 
 		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -348,7 +348,7 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (dt
 func (s *authService) Logout(ctx context.Context) error {
 	userID := ctx.Value("user.id").(uuid.UUID)
 
-	err := s.repo.DeleteSession(ctx, userID)
+	err := s.repo.DeleteAuthSession(ctx, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return errorpkg.ErrInvalidBearerToken
@@ -357,7 +357,7 @@ func (s *authService) Logout(ctx context.Context) error {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
 			"error":  err.Error(),
 			"userID": userID,
-		}, "[AuthService][Logout] failed to delete session")
+		}, "[AuthService][Logout] failed to delete auth session")
 
 		return errorpkg.ErrInternalServer.WithTraceID(traceID)
 	}

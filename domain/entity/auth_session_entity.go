@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type Session struct {
+type AuthSession struct {
 	Token     string    `json:"token"`
 	UserID    uuid.UUID `json:"user_id" db:"user_id"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`

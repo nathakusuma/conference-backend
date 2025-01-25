@@ -769,3 +769,268 @@ func Test_AuthService_Logout(t *testing.T) {
 		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 }
+
+func Test_AuthService_RequestOTPResetPassword(t *testing.T) {
+	ctx := context.Background()
+	email := "test@example.com"
+
+	t.Run("success", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+		emailSent := make(chan struct{}, 1)
+
+		// Expect user to be found
+		mocks.userSvc.EXPECT().
+			GetUserByEmail(ctx, email).
+			Return(&entity.User{ID: uuid.New()}, nil)
+
+		// Expect OTP to be set
+		mocks.authRepo.EXPECT().
+			SetUserResetPasswordOTP(ctx, email, mock.AnythingOfType("string")).
+			Return(nil)
+
+		// Mock email sending with channel notification
+		mocks.mailer.EXPECT().
+			Send(
+				email,
+				"[Astungkara] Reset Password",
+				"otp_reset_password.html",
+				mock.AnythingOfType("map[string]interface {}"),
+			).RunAndReturn(func(_, _, _ string, _ map[string]interface{}) error {
+			emailSent <- struct{}{}
+			return nil
+		})
+
+		err := svc.RequestOTPResetPassword(ctx, email)
+		assert.NoError(t, err)
+
+		// Wait for email sending goroutine to complete
+		<-emailSent
+	})
+
+	t.Run("error - user not found", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.userSvc.EXPECT().
+			GetUserByEmail(ctx, email).
+			Return(nil, errorpkg.ErrNotFound)
+
+		err := svc.RequestOTPResetPassword(ctx, email)
+		assert.ErrorIs(t, err, errorpkg.ErrNotFound)
+		assert.Contains(t, err.Error(), "User not found. Please register.")
+	})
+
+	t.Run("error - get user unexpected error", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.userSvc.EXPECT().
+			GetUserByEmail(ctx, email).
+			Return(nil, errors.New("unexpected error"))
+
+		err := svc.RequestOTPResetPassword(ctx, email)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+
+	t.Run("error - set OTP fails", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.userSvc.EXPECT().
+			GetUserByEmail(ctx, email).
+			Return(&entity.User{ID: uuid.New()}, nil)
+
+		mocks.authRepo.EXPECT().
+			SetUserResetPasswordOTP(ctx, email, mock.AnythingOfType("string")).
+			Return(errors.New("redis error"))
+
+		err := svc.RequestOTPResetPassword(ctx, email)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+
+	t.Run("error - email sending fails", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+		emailSent := make(chan struct{}, 1)
+
+		mocks.userSvc.EXPECT().
+			GetUserByEmail(ctx, email).
+			Return(&entity.User{ID: uuid.New()}, nil)
+
+		mocks.authRepo.EXPECT().
+			SetUserResetPasswordOTP(ctx, email, mock.AnythingOfType("string")).
+			Return(nil)
+
+		mocks.mailer.EXPECT().
+			Send(
+				email,
+				"[Astungkara] Reset Password",
+				"otp_reset_password.html",
+				mock.AnythingOfType("map[string]interface {}"),
+			).RunAndReturn(func(_, _, _ string, _ map[string]interface{}) error {
+			emailSent <- struct{}{}
+			return errors.New("email sending error")
+		})
+
+		err := svc.RequestOTPResetPassword(ctx, email)
+		assert.NoError(t, err) // Should not return error as email is sent in goroutine
+
+		// Wait for email sending goroutine to complete
+		<-emailSent
+	})
+}
+
+func Test_AuthService_ResetPassword(t *testing.T) {
+	ctx := context.Background()
+	req := dto.ResetPasswordRequest{
+		Email:       "test@example.com",
+		OTP:         "123456",
+		NewPassword: "newpassword123",
+	}
+
+	t.Run("success", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		// Setup expectations for password reset
+		mocks.authRepo.EXPECT().
+			GetUserResetPasswordOTP(ctx, req.Email).
+			Return(req.OTP, nil)
+
+		mocks.authRepo.EXPECT().
+			SetUserResetPasswordOTP(ctx, req.Email, "").
+			Return(nil)
+
+		mocks.userSvc.EXPECT().
+			UpdatePassword(ctx, req.Email, req.NewPassword).
+			Return(nil)
+
+		// Setup expectations for subsequent login
+		mockLoginExpectations(mocks, ctx, req.Email, req.NewPassword, uuid.New())
+
+		resp, err := svc.ResetPassword(ctx, req)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, resp.AccessToken)
+		assert.NotEmpty(t, resp.RefreshToken)
+		assert.NotNil(t, resp.User)
+	})
+
+	t.Run("error - OTP not found", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserResetPasswordOTP(ctx, req.Email).
+			Return("", redis.Nil)
+
+		resp, err := svc.ResetPassword(ctx, req)
+		assert.Empty(t, resp)
+		assert.ErrorIs(t, err, errorpkg.ErrInvalidOTP)
+	})
+
+	t.Run("error - get OTP unexpected error", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserResetPasswordOTP(ctx, req.Email).
+			Return("", errors.New("redis error"))
+
+		resp, err := svc.ResetPassword(ctx, req)
+		assert.Empty(t, resp)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+
+	t.Run("error - invalid OTP", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserResetPasswordOTP(ctx, req.Email).
+			Return("different-otp", nil)
+
+		resp, err := svc.ResetPassword(ctx, req)
+		assert.Empty(t, resp)
+		assert.ErrorIs(t, err, errorpkg.ErrInvalidOTP)
+	})
+
+	t.Run("error - delete OTP fails", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserResetPasswordOTP(ctx, req.Email).
+			Return(req.OTP, nil)
+
+		mocks.authRepo.EXPECT().
+			SetUserResetPasswordOTP(ctx, req.Email, "").
+			Return(errors.New("redis error"))
+
+		resp, err := svc.ResetPassword(ctx, req)
+		assert.Empty(t, resp)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+
+	t.Run("error - update password fails", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserResetPasswordOTP(ctx, req.Email).
+			Return(req.OTP, nil)
+
+		mocks.authRepo.EXPECT().
+			SetUserResetPasswordOTP(ctx, req.Email, "").
+			Return(nil)
+
+		mocks.userSvc.EXPECT().
+			UpdatePassword(ctx, req.Email, req.NewPassword).
+			Return(errors.New("db error"))
+
+		resp, err := svc.ResetPassword(ctx, req)
+		assert.Empty(t, resp)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+
+	t.Run("error - user not found during update", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserResetPasswordOTP(ctx, req.Email).
+			Return(req.OTP, nil)
+
+		mocks.authRepo.EXPECT().
+			SetUserResetPasswordOTP(ctx, req.Email, "").
+			Return(nil)
+
+		mocks.userSvc.EXPECT().
+			UpdatePassword(ctx, req.Email, req.NewPassword).
+			Return(errorpkg.ErrNotFound)
+
+		resp, err := svc.ResetPassword(ctx, req)
+		assert.Empty(t, resp)
+		assert.ErrorIs(t, err, errorpkg.ErrNotFound)
+	})
+
+	t.Run("error - login after reset fails", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		// Success up to password update
+		mocks.authRepo.EXPECT().
+			GetUserResetPasswordOTP(ctx, req.Email).
+			Return(req.OTP, nil)
+
+		mocks.authRepo.EXPECT().
+			SetUserResetPasswordOTP(ctx, req.Email, "").
+			Return(nil)
+
+		mocks.userSvc.EXPECT().
+			UpdatePassword(ctx, req.Email, req.NewPassword).
+			Return(nil)
+
+		// Fail during login
+		mocks.userSvc.EXPECT().
+			GetUserByEmail(ctx, req.Email).
+			Return(nil, errors.New("db error"))
+
+		resp, err := svc.ResetPassword(ctx, req)
+		assert.Empty(t, resp)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+}

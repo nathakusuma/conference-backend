@@ -130,6 +130,53 @@ func (_c *MockIUserRepository_GetUserByField_Call) RunAndReturn(run func(context
 	return _c
 }
 
+// UpdateUser provides a mock function with given fields: ctx, user
+func (_m *MockIUserRepository) UpdateUser(ctx context.Context, user *entity.User) error {
+	ret := _m.Called(ctx, user)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *entity.User) error); ok {
+		r0 = rf(ctx, user)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockIUserRepository_UpdateUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateUser'
+type MockIUserRepository_UpdateUser_Call struct {
+	*mock.Call
+}
+
+// UpdateUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - user *entity.User
+func (_e *MockIUserRepository_Expecter) UpdateUser(ctx interface{}, user interface{}) *MockIUserRepository_UpdateUser_Call {
+	return &MockIUserRepository_UpdateUser_Call{Call: _e.mock.On("UpdateUser", ctx, user)}
+}
+
+func (_c *MockIUserRepository_UpdateUser_Call) Run(run func(ctx context.Context, user *entity.User)) *MockIUserRepository_UpdateUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*entity.User))
+	})
+	return _c
+}
+
+func (_c *MockIUserRepository_UpdateUser_Call) Return(_a0 error) *MockIUserRepository_UpdateUser_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockIUserRepository_UpdateUser_Call) RunAndReturn(run func(context.Context, *entity.User) error) *MockIUserRepository_UpdateUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockIUserRepository creates a new instance of MockIUserRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockIUserRepository(t interface {

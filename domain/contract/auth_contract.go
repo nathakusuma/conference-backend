@@ -15,6 +15,10 @@ type IAuthRepository interface {
 	CreateSession(ctx context.Context, session *entity.Session) error
 	GetSessionByToken(ctx context.Context, token string) (*entity.Session, error)
 	DeleteSession(ctx context.Context, userID uuid.UUID) error
+
+	SetUserResetPasswordOTP(ctx context.Context, email, otp string) error
+	GetUserResetPasswordOTP(ctx context.Context, email string) (string, error)
+	DeleteUserResetPasswordOTP(ctx context.Context, email string) error
 }
 
 type IAuthService interface {
@@ -25,4 +29,7 @@ type IAuthService interface {
 
 	RefreshToken(ctx context.Context, refreshToken string) (dto.LoginResponse, error)
 	Logout(ctx context.Context) error
+
+	RequestOTPResetPassword(ctx context.Context, email string) error
+	ResetPassword(ctx context.Context, req dto.ResetPasswordRequest) (dto.LoginResponse, error)
 }

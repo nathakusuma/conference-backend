@@ -5,6 +5,7 @@ import (
 	"github.com/nathakusuma/astungkara/domain/contract"
 	"github.com/nathakusuma/astungkara/domain/dto"
 	"github.com/nathakusuma/astungkara/domain/errorpkg"
+	"github.com/nathakusuma/astungkara/internal/middleware"
 	"github.com/nathakusuma/astungkara/pkg/validator"
 	"net/http"
 )
@@ -16,6 +17,7 @@ type authHandler struct {
 
 func InitAuthHandler(
 	router fiber.Router,
+	middlewareInstance *middleware.Middleware,
 	validator validator.IValidator,
 	authSvc contract.IAuthService,
 ) {
@@ -31,6 +33,7 @@ func InitAuthHandler(
 	authGroup.Post("/register", handler.registerUser())
 	authGroup.Post("/login", handler.loginUser())
 	authGroup.Post("/refresh", handler.refreshToken())
+	authGroup.Post("/logout", middlewareInstance.RequireAuthenticated(), handler.logout())
 }
 
 func (c *authHandler) requestOTPRegisterUser() fiber.Handler {
@@ -130,5 +133,16 @@ func (c *authHandler) refreshToken() fiber.Handler {
 		}
 
 		return ctx.Status(http.StatusOK).JSON(resp)
+	}
+}
+
+func (c *authHandler) logout() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		err := c.svc.Logout(ctx.Context())
+		if err != nil {
+			return err
+		}
+
+		return ctx.SendStatus(http.StatusNoContent)
 	}
 }

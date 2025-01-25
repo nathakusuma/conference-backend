@@ -16,4 +16,5 @@ type IUserRepository interface {
 type IUserService interface {
 	CreateUser(ctx context.Context, req *dto.CreateUserRequest) (uuid.UUID, error)
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
+	GetUserByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
 }

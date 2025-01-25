@@ -117,6 +117,65 @@ func (_c *MockIAuthRepository_DeleteUserRegisterOTP_Call) RunAndReturn(run func(
 	return _c
 }
 
+// GetSessionByToken provides a mock function with given fields: ctx, token
+func (_m *MockIAuthRepository) GetSessionByToken(ctx context.Context, token string) (*entity.Session, error) {
+	ret := _m.Called(ctx, token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSessionByToken")
+	}
+
+	var r0 *entity.Session
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*entity.Session, error)); ok {
+		return rf(ctx, token)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *entity.Session); ok {
+		r0 = rf(ctx, token)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.Session)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, token)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockIAuthRepository_GetSessionByToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSessionByToken'
+type MockIAuthRepository_GetSessionByToken_Call struct {
+	*mock.Call
+}
+
+// GetSessionByToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - token string
+func (_e *MockIAuthRepository_Expecter) GetSessionByToken(ctx interface{}, token interface{}) *MockIAuthRepository_GetSessionByToken_Call {
+	return &MockIAuthRepository_GetSessionByToken_Call{Call: _e.mock.On("GetSessionByToken", ctx, token)}
+}
+
+func (_c *MockIAuthRepository_GetSessionByToken_Call) Run(run func(ctx context.Context, token string)) *MockIAuthRepository_GetSessionByToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockIAuthRepository_GetSessionByToken_Call) Return(_a0 *entity.Session, _a1 error) *MockIAuthRepository_GetSessionByToken_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockIAuthRepository_GetSessionByToken_Call) RunAndReturn(run func(context.Context, string) (*entity.Session, error)) *MockIAuthRepository_GetSessionByToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUserRegisterOTP provides a mock function with given fields: ctx, email
 func (_m *MockIAuthRepository) GetUserRegisterOTP(ctx context.Context, email string) (string, error) {
 	ret := _m.Called(ctx, email)

@@ -282,5 +282,92 @@ $$
         WHERE conferences.title = 'Future Conference 4'
           AND users.id = user2_id;
 
+        -- Feedback for Past Conference 1 (all users were registered)
+        INSERT INTO feedbacks (id, user_id, conference_id, comment, created_at)
+        SELECT generate_ulid_at_time(NOW() - INTERVAL '6 days'),
+               user1_id,
+               conferences.id,
+               'Great introduction to the topic. The speaker was very knowledgeable and engaging.',
+               NOW() - INTERVAL '6 days'
+        FROM conferences
+        WHERE title = 'Past Conference 1';
+
+        INSERT INTO feedbacks (id, user_id, conference_id, comment, created_at)
+        SELECT generate_ulid_at_time(NOW() - INTERVAL '6 days' + INTERVAL '1 hour'),
+               user2_id,
+               conferences.id,
+               'Well-organized conference with valuable insights. Would recommend to others.',
+               NOW() - INTERVAL '6 days' + INTERVAL '1 hour'
+        FROM conferences
+        WHERE title = 'Past Conference 1';
+
+        INSERT INTO feedbacks (id, user_id, conference_id, comment, created_at)
+        SELECT generate_ulid_at_time(NOW() - INTERVAL '6 days' + INTERVAL '2 hours'),
+               user3_id,
+               conferences.id,
+               'The practical examples were particularly helpful. Looking forward to applying these concepts.',
+               NOW() - INTERVAL '6 days' + INTERVAL '2 hours'
+        FROM conferences
+        WHERE title = 'Past Conference 1';
+
+        -- Feedback for Past Conference 2 (User 1, 2, 3 were registered)
+        INSERT INTO feedbacks (id, user_id, conference_id, comment, created_at)
+        SELECT generate_ulid_at_time(NOW() - INTERVAL '5 days'),
+               user1_id,
+               conferences.id,
+               'The advanced concepts were explained clearly. Excellent presentation skills.',
+               NOW() - INTERVAL '5 days'
+        FROM conferences
+        WHERE title = 'Past Conference 2';
+
+        INSERT INTO feedbacks (id, user_id, conference_id, comment, created_at)
+        SELECT generate_ulid_at_time(NOW() - INTERVAL '5 days' + INTERVAL '1 hour'),
+               user2_id,
+               conferences.id,
+               'Very informative session. The Q&A portion was particularly enlightening.',
+               NOW() - INTERVAL '5 days' + INTERVAL '1 hour'
+        FROM conferences
+        WHERE title = 'Past Conference 2';
+
+        -- Feedback for Past Conference 3 (User 2, 3, 4 were registered)
+        INSERT INTO feedbacks (id, user_id, conference_id, comment, created_at)
+        SELECT generate_ulid_at_time(NOW() - INTERVAL '8 days'),
+               user2_id,
+               conferences.id,
+               'The JavaScript patterns shared will definitely improve our codebase. Thanks!',
+               NOW() - INTERVAL '8 days'
+        FROM conferences
+        WHERE title = 'Past Conference 3';
+
+        INSERT INTO feedbacks (id, user_id, conference_id, comment, created_at)
+        SELECT generate_ulid_at_time(NOW() - INTERVAL '8 days' + INTERVAL '1 hour'),
+               user4_id,
+               conferences.id,
+               'Excellent deep dive into advanced JavaScript concepts. Very practical examples.',
+               NOW() - INTERVAL '8 days' + INTERVAL '1 hour'
+        FROM conferences
+        WHERE title = 'Past Conference 3';
+
+        -- Feedback for Past Conference 4 (User 1, 4 were registered)
+        INSERT INTO feedbacks (id, user_id, conference_id, comment, created_at)
+        SELECT generate_ulid_at_time(NOW() - INTERVAL '7 days'),
+               user1_id,
+               conferences.id,
+               'The microservices architecture patterns presented were very relevant to our current projects.',
+               NOW() - INTERVAL '7 days'
+        FROM conferences
+        WHERE title = 'Past Conference 4';
+
+        -- Add some deleted feedbacks
+        INSERT INTO feedbacks (id, user_id, conference_id, comment, created_at, deleted_at)
+        SELECT generate_ulid_at_time(NOW() - INTERVAL '7 days' + INTERVAL '1 hour'),
+               user4_id,
+               conferences.id,
+               'This feedback has been deleted',
+               NOW() - INTERVAL '7 days' + INTERVAL '1 hour',
+               NOW() - INTERVAL '1 day'
+        FROM conferences
+        WHERE title = 'Past Conference 4';
+
     END
 $$;

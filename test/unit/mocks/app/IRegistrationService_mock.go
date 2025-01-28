@@ -160,6 +160,64 @@ func (_c *MockIRegistrationService_GetRegisteredUsersByConference_Call) RunAndRe
 	return _c
 }
 
+// IsUserRegisteredToConference provides a mock function with given fields: ctx, conferenceID, userID
+func (_m *MockIRegistrationService) IsUserRegisteredToConference(ctx context.Context, conferenceID uuid.UUID, userID uuid.UUID) (bool, error) {
+	ret := _m.Called(ctx, conferenceID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsUserRegisteredToConference")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) (bool, error)); ok {
+		return rf(ctx, conferenceID, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) bool); ok {
+		r0 = rf(ctx, conferenceID, userID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r1 = rf(ctx, conferenceID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockIRegistrationService_IsUserRegisteredToConference_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsUserRegisteredToConference'
+type MockIRegistrationService_IsUserRegisteredToConference_Call struct {
+	*mock.Call
+}
+
+// IsUserRegisteredToConference is a helper method to define mock.On call
+//   - ctx context.Context
+//   - conferenceID uuid.UUID
+//   - userID uuid.UUID
+func (_e *MockIRegistrationService_Expecter) IsUserRegisteredToConference(ctx interface{}, conferenceID interface{}, userID interface{}) *MockIRegistrationService_IsUserRegisteredToConference_Call {
+	return &MockIRegistrationService_IsUserRegisteredToConference_Call{Call: _e.mock.On("IsUserRegisteredToConference", ctx, conferenceID, userID)}
+}
+
+func (_c *MockIRegistrationService_IsUserRegisteredToConference_Call) Run(run func(ctx context.Context, conferenceID uuid.UUID, userID uuid.UUID)) *MockIRegistrationService_IsUserRegisteredToConference_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockIRegistrationService_IsUserRegisteredToConference_Call) Return(_a0 bool, _a1 error) *MockIRegistrationService_IsUserRegisteredToConference_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockIRegistrationService_IsUserRegisteredToConference_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) (bool, error)) *MockIRegistrationService_IsUserRegisteredToConference_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Register provides a mock function with given fields: ctx, conferenceID, userID
 func (_m *MockIRegistrationService) Register(ctx context.Context, conferenceID uuid.UUID, userID uuid.UUID) error {
 	ret := _m.Called(ctx, conferenceID, userID)

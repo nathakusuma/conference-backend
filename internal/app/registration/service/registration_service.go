@@ -179,3 +179,19 @@ func (s *registrationService) GetRegisteredConferencesByUser(ctx context.Context
 
 	return resp, lazyResp, nil
 }
+
+func (s *registrationService) IsUserRegisteredToConference(ctx context.Context, conferenceID,
+	userID uuid.UUID) (bool, error) {
+
+	ok, err := s.r.IsUserRegisteredToConference(ctx, conferenceID, userID)
+	if err != nil {
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error":        err,
+			"conferenceID": conferenceID,
+			"userID":       userID,
+		}, "[RegistrationService][IsUserRegisteredToConference] Failed to check if user is registered to conference")
+		return false, errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	return ok, nil
+}

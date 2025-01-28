@@ -30,4 +30,6 @@ type IRegistrationService interface {
 		lazyReq dto.LazyLoadQuery) ([]dto.UserResponse, dto.LazyLoadResponse, error)
 	GetRegisteredConferencesByUser(ctx context.Context, userID uuid.UUID,
 		includePast bool, lazyReq dto.LazyLoadQuery) ([]dto.ConferenceResponse, dto.LazyLoadResponse, error)
+
+	IsUserRegisteredToConference(ctx context.Context, conferenceID, userID uuid.UUID) (bool, error)
 }

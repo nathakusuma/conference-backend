@@ -52,7 +52,7 @@ func (r *conferenceRepository) CreateConference(ctx context.Context, conference 
 }
 
 func (r *conferenceRepository) GetConferenceByID(ctx context.Context, id uuid.UUID) (*entity.Conference, error) {
-	var row conferenceJoinUserRow
+	var row dto.ConferenceJoinUserRow
 
 	statement := `SELECT
 			c.id, c.title, c.description, c.speaker_name, c.speaker_title,
@@ -69,7 +69,7 @@ func (r *conferenceRepository) GetConferenceByID(ctx context.Context, id uuid.UU
 		return nil, err
 	}
 
-	conference := row.toEntity()
+	conference := row.ToEntity()
 	return &conference, nil
 }
 
@@ -211,11 +211,11 @@ func (r *conferenceRepository) GetConferences(ctx context.Context,
 	// Scan results
 	var conferences []entity.Conference
 	for rows.Next() {
-		var row conferenceJoinUserRow
+		var row dto.ConferenceJoinUserRow
 		if err2 := rows.StructScan(&row); err2 != nil {
 			return nil, dto.LazyLoadResponse{}, fmt.Errorf("failed to scan conference: %w", err)
 		}
-		conferences = append(conferences, row.toEntity())
+		conferences = append(conferences, row.ToEntity())
 	}
 
 	if err = rows.Err(); err != nil {

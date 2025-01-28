@@ -47,9 +47,9 @@ func (s *userService) CreateUser(ctx context.Context, req *dto.CreateUserRequest
 	userID, err := s.uuid.NewV7()
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error":      err.Error(),
-			"request":    loggableReq,
-			"creator.id": creatorID,
+			"error":        err.Error(),
+			"request":      loggableReq,
+			"requester.id": creatorID,
 		}, "[UserService][CreateUser] Failed to generate user ID")
 
 		return uuid.Nil, errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -58,9 +58,9 @@ func (s *userService) CreateUser(ctx context.Context, req *dto.CreateUserRequest
 	passwordHash, err := s.bcrypt.Hash(req.Password)
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error":      err.Error(),
-			"request":    loggableReq,
-			"creator.id": creatorID,
+			"error":        err.Error(),
+			"request":      loggableReq,
+			"requester.id": creatorID,
 		}, "[UserService][CreateUser] Failed to hash password")
 
 		return uuid.Nil, errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -85,17 +85,17 @@ func (s *userService) CreateUser(ctx context.Context, req *dto.CreateUserRequest
 
 		// other error
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error":      err.Error(),
-			"request":    loggableReq,
-			"creator.id": creatorID,
+			"error":        err.Error(),
+			"request":      loggableReq,
+			"requester.id": creatorID,
 		}, "[UserService][CreateUser] Failed to create user")
 
 		return uuid.Nil, errorpkg.ErrInternalServer.WithTraceID(traceID)
 	}
 
 	log.Info(map[string]interface{}{
-		"user":       user,
-		"creator.id": creatorID,
+		"user":         user,
+		"requester.id": creatorID,
 	}, "[UserService][CreateUser] User created")
 
 	return userID, nil

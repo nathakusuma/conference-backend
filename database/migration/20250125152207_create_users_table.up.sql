@@ -10,5 +10,5 @@ CREATE TABLE users (
 	deleted_at TIMESTAMP
 );
 
-CREATE UNIQUE INDEX users_email_key ON users (email);
+CREATE UNIQUE INDEX users_email_key ON users (email) WHERE deleted_at IS NULL;
 CREATE INDEX users_deleted_at_idx ON users (deleted_at);

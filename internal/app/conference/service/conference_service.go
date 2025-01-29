@@ -175,6 +175,10 @@ func (s *conferenceService) GetConferenceByID(ctx context.Context, id uuid.UUID)
 func (s *conferenceService) GetConferences(ctx context.Context,
 	query *dto.GetConferenceQuery) ([]dto.ConferenceResponse, dto.LazyLoadResponse, error) {
 
+	if query.AfterID != nil && query.BeforeID != nil {
+		return nil, dto.LazyLoadResponse{}, errorpkg.ErrInvalidPagination
+	}
+
 	requesterID, _ := ctx.Value("user.id").(uuid.UUID)
 	requesterRole, _ := ctx.Value("user.role").(enum.UserRole)
 

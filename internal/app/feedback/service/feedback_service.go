@@ -47,6 +47,19 @@ func (s *feedbackService) CreateFeedback(ctx context.Context, userID, conference
 		return uuid.Nil, errorpkg.ErrUserNotRegisteredToConference
 	}
 
+	hasGivenFeedback, err := s.repo.IsFeedbackGiven(ctx, userID, conferenceID)
+	if err != nil {
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error":        err,
+			"userID":       userID,
+			"conferenceID": conferenceID,
+		}, "[FeedbackService][CreateFeedback] Failed to check if feedback is given")
+		return uuid.Nil, errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+	if hasGivenFeedback {
+		return uuid.Nil, errorpkg.ErrFeedbackAlreadyGiven
+	}
+
 	conference, err := s.conferenceSvc.GetConferenceByID(ctx, conferenceID)
 	if err != nil {
 		return uuid.Nil, err

@@ -188,6 +188,64 @@ func (_c *MockIFeedbackRepository_GetFeedbacksByConferenceID_Call) RunAndReturn(
 	return _c
 }
 
+// IsFeedbackGiven provides a mock function with given fields: ctx, userID, conferenceID
+func (_m *MockIFeedbackRepository) IsFeedbackGiven(ctx context.Context, userID uuid.UUID, conferenceID uuid.UUID) (bool, error) {
+	ret := _m.Called(ctx, userID, conferenceID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsFeedbackGiven")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) (bool, error)); ok {
+		return rf(ctx, userID, conferenceID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) bool); ok {
+		r0 = rf(ctx, userID, conferenceID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r1 = rf(ctx, userID, conferenceID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockIFeedbackRepository_IsFeedbackGiven_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsFeedbackGiven'
+type MockIFeedbackRepository_IsFeedbackGiven_Call struct {
+	*mock.Call
+}
+
+// IsFeedbackGiven is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uuid.UUID
+//   - conferenceID uuid.UUID
+func (_e *MockIFeedbackRepository_Expecter) IsFeedbackGiven(ctx interface{}, userID interface{}, conferenceID interface{}) *MockIFeedbackRepository_IsFeedbackGiven_Call {
+	return &MockIFeedbackRepository_IsFeedbackGiven_Call{Call: _e.mock.On("IsFeedbackGiven", ctx, userID, conferenceID)}
+}
+
+func (_c *MockIFeedbackRepository_IsFeedbackGiven_Call) Run(run func(ctx context.Context, userID uuid.UUID, conferenceID uuid.UUID)) *MockIFeedbackRepository_IsFeedbackGiven_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockIFeedbackRepository_IsFeedbackGiven_Call) Return(_a0 bool, _a1 error) *MockIFeedbackRepository_IsFeedbackGiven_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockIFeedbackRepository_IsFeedbackGiven_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) (bool, error)) *MockIFeedbackRepository_IsFeedbackGiven_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockIFeedbackRepository creates a new instance of MockIFeedbackRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockIFeedbackRepository(t interface {

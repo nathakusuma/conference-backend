@@ -12,6 +12,7 @@ type IFeedbackRepository interface {
 	GetFeedbacksByConferenceID(ctx context.Context, conferenceID uuid.UUID,
 		lazyReq dto.LazyLoadQuery) ([]entity.Feedback, dto.LazyLoadResponse, error)
 	DeleteFeedback(ctx context.Context, id uuid.UUID) error
+	IsFeedbackGiven(ctx context.Context, userID, conferenceID uuid.UUID) (bool, error)
 }
 
 type IFeedbackService interface {

@@ -23,5 +23,6 @@ type Conference struct {
 	UpdatedAt      time.Time             `json:"updated_at" db:"updated_at"`
 	DeletedAt      *time.Time            `json:"deleted_at" db:"deleted_at"`
 
-	Host User `json:"-" db:"-"`
+	Host              User `json:"-" db:"-"`
+	RegistrationCount int  `json:"-" db:"-"`
 }

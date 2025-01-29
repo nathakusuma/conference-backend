@@ -24,7 +24,8 @@ type ConferenceJoinUserRow struct {
 	CreatedAt      time.Time             `db:"created_at"`
 	UpdatedAt      time.Time             `db:"updated_at"`
 
-	HostName string `db:"host_name"`
+	HostName          string `db:"host_name"`
+	RegistrationCount int    `db:"registration_count"`
 }
 
 func (r *ConferenceJoinUserRow) ToEntity() entity.Conference {
@@ -47,5 +48,6 @@ func (r *ConferenceJoinUserRow) ToEntity() entity.Conference {
 			ID:   r.HostID,
 			Name: r.HostName,
 		},
+		RegistrationCount: r.RegistrationCount,
 	}
 }

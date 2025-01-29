@@ -101,8 +101,6 @@ https://astungkara.nathakusuma.com
 - Role-based access control
 - Input validation
 - Secure password hashing
-- Rate limiting
-- HTTPS enforcement
 
 ## 🔍 Monitoring
 

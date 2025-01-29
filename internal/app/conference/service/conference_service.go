@@ -205,14 +205,8 @@ func (s *conferenceService) GetConferences(ctx context.Context,
 }
 
 func (s *conferenceService) UpdateConference(ctx context.Context, id uuid.UUID, req dto.UpdateConferenceRequest) error {
-	requesterID, ok := ctx.Value("user.id").(uuid.UUID)
-	if !ok {
-		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error":        errors.New("failed to get user id from context"),
-			"requester.id": requesterID,
-		}, "[ConferenceService][UpdateConference] Failed to get user id from context")
-		return errorpkg.ErrInternalServer.WithTraceID(traceID)
-	}
+	requesterID, _ := ctx.Value("user.id").(uuid.UUID)
+	requesterRole, _ := ctx.Value("user.role").(enum.UserRole)
 
 	original, err := s.r.GetConferenceByID(ctx, id)
 	if err != nil {
@@ -231,7 +225,7 @@ func (s *conferenceService) UpdateConference(ctx context.Context, id uuid.UUID, 
 	req.GenerateUpdateEntity(&conference)
 
 	// Check if user is the host
-	if original.HostID != requesterID {
+	if requesterRole == enum.RoleUser && conference.HostID != requesterID {
 		return errorpkg.ErrForbiddenUser
 	}
 
@@ -239,17 +233,12 @@ func (s *conferenceService) UpdateConference(ctx context.Context, id uuid.UUID, 
 		return errorpkg.ErrUpdatePastConference
 	}
 
-	if original.Status == enum.ConferenceRejected {
-		return errorpkg.ErrUpdateRejectedConference
+	if original.Status != enum.ConferencePending {
+		return errorpkg.ErrUpdateNotPendingConference
 	}
 
 	// Check if there is a conference in the same time window
 	if req.StartsAt != nil || req.EndsAt != nil {
-		// Only allow edit time window if conference is pending
-		if original.Status == enum.ConferenceApproved {
-			return errorpkg.ErrUpdateApprovedTimeWindow
-		}
-
 		if conference.StartsAt.Before(time.Now()) {
 			return errorpkg.ErrTimeAlreadyPassed
 		}
@@ -303,16 +292,8 @@ func (s *conferenceService) UpdateConference(ctx context.Context, id uuid.UUID, 
 }
 
 func (s *conferenceService) DeleteConference(ctx context.Context, id uuid.UUID) error {
-	requesterID, ok := ctx.Value("user.id").(uuid.UUID)
-	requesterRole, ok2 := ctx.Value("user.role").(enum.UserRole)
-	if !ok || !ok2 {
-		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error":          errors.New("failed to get user id or role from context"),
-			"requester.id":   requesterID,
-			"requester.role": requesterRole,
-		}, "[ConferenceService][DeleteConference] Failed to get user id or role from context")
-		return errorpkg.ErrInternalServer.WithTraceID(traceID)
-	}
+	requesterID, _ := ctx.Value("user.id").(uuid.UUID)
+	requesterRole, _ := ctx.Value("user.role").(enum.UserRole)
 
 	conference, err := s.r.GetConferenceByID(ctx, id)
 	if err != nil {
@@ -363,21 +344,21 @@ func (s *conferenceService) UpdateConferenceStatus(ctx context.Context, id uuid.
 		return errorpkg.ErrInternalServer.WithTraceID(traceID)
 	}
 
+	if conference.Status != enum.ConferencePending {
+		return errorpkg.ErrUpdateNotPendingConference
+	}
+
 	// Only allow transition from pending to rejected if conference is in the past
-	if conference.StartsAt.Before(time.Now()) {
-		if status == enum.ConferenceRejected && conference.Status == enum.ConferencePending {
-			// Allow rejection of past pending conferences
-		} else {
-			return errorpkg.ErrUpdatePastConferenceStatus
-		}
+	if conference.StartsAt.Before(time.Now()) && status != enum.ConferenceRejected {
+		return errorpkg.ErrUpdatePastConferenceStatus
 	}
 
 	if status == enum.ConferenceApproved {
 		// Check for time conflicts only when approving
-		conflicts, err := s.r.GetConferencesConflictingWithTime(ctx, conference.StartsAt, conference.EndsAt, id)
-		if err != nil {
+		conflicts, err2 := s.r.GetConferencesConflictingWithTime(ctx, conference.StartsAt, conference.EndsAt, id)
+		if err2 != nil {
 			traceID := log.ErrorWithTraceID(map[string]interface{}{
-				"error":        err,
+				"error":        err2,
 				"requester.id": ctx.Value("user.id"),
 			}, "[ConferenceService][UpdateConferenceStatus] Failed to get conflicting conferences")
 			return errorpkg.ErrInternalServer.WithTraceID(traceID)

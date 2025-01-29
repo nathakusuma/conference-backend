@@ -749,6 +749,7 @@ func Test_ConferenceService_UpdateConference(t *testing.T) {
 	now := time.Now()
 	futureTime := now.Add(24 * time.Hour)
 	ctx := context.WithValue(context.Background(), "user.id", userID)
+	ctx = context.WithValue(ctx, "user.role", enum.RoleUser)
 
 	t.Run("success - update basic info", func(t *testing.T) {
 		svc, mocks := setupConferenceServiceTest(t)
@@ -844,7 +845,7 @@ func Test_ConferenceService_UpdateConference(t *testing.T) {
 			Return(conference, nil)
 
 		err := svc.UpdateConference(ctx, conferenceID, dto.UpdateConferenceRequest{})
-		assert.ErrorIs(t, err, errorpkg.ErrUpdateRejectedConference)
+		assert.ErrorIs(t, err, errorpkg.ErrUpdateNotPendingConference)
 	})
 
 	t.Run("error - time already passed", func(t *testing.T) {
@@ -936,37 +937,6 @@ func Test_ConferenceService_UpdateConference(t *testing.T) {
 		assert.ErrorIs(t, err, errorpkg.ErrTimeWindowConflict)
 	})
 
-	t.Run("error - update approved conference time window", func(t *testing.T) {
-		svc, mocks := setupConferenceServiceTest(t)
-
-		conference := &entity.Conference{
-			ID:       conferenceID,
-			HostID:   userID,
-			StartsAt: futureTime,
-			EndsAt:   futureTime.Add(time.Hour),
-			Status:   enum.ConferenceApproved,
-		}
-
-		newTime := futureTime.Add(time.Hour)
-		req := dto.UpdateConferenceRequest{
-			StartsAt: &newTime,
-		}
-
-		mocks.conferenceRepo.EXPECT().
-			GetConferenceByID(ctx, conferenceID).
-			Return(conference, nil)
-
-		err := svc.UpdateConference(ctx, conferenceID, req)
-		assert.ErrorIs(t, err, errorpkg.ErrUpdateApprovedTimeWindow)
-	})
-
-	t.Run("error - failed to get user id from context", func(t *testing.T) {
-		svc, _ := setupConferenceServiceTest(t)
-
-		err := svc.UpdateConference(context.Background(), conferenceID, dto.UpdateConferenceRequest{})
-		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
-	})
-
 	t.Run("error - internal server error on get conference", func(t *testing.T) {
 		svc, mocks := setupConferenceServiceTest(t)
 
@@ -1041,7 +1011,6 @@ func Test_ConferenceService_UpdateConference(t *testing.T) {
 }
 
 func Test_ConferenceService_DeleteConference(t *testing.T) {
-	ctx := context.Background()
 	conferenceID := uuid.New()
 	userID := uuid.New()
 
@@ -1099,14 +1068,6 @@ func Test_ConferenceService_DeleteConference(t *testing.T) {
 
 		err := svc.DeleteConference(ctx, conferenceID)
 		assert.NoError(t, err)
-	})
-
-	t.Run("error - context validation failed", func(t *testing.T) {
-		svc, _ := setupConferenceServiceTest(t)
-
-		// Empty context
-		err := svc.DeleteConference(ctx, conferenceID)
-		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 
 	t.Run("error - conference not found", func(t *testing.T) {
@@ -1278,6 +1239,25 @@ func Test_ConferenceService_UpdateConferenceStatus(t *testing.T) {
 
 		err := svc.UpdateConferenceStatus(ctx, conferenceID, enum.ConferenceApproved)
 		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+
+	t.Run("error - conference status not pending", func(t *testing.T) {
+		svc, mocks := setupConferenceServiceTest(t)
+
+		conference := &entity.Conference{
+			ID:       conferenceID,
+			StartsAt: futureTime,
+			EndsAt:   futureTime.Add(time.Hour),
+			Status:   enum.ConferenceApproved,
+		}
+
+		// Expect conference retrieval
+		mocks.conferenceRepo.EXPECT().
+			GetConferenceByID(ctx, conferenceID).
+			Return(conference, nil)
+
+		err := svc.UpdateConferenceStatus(ctx, conferenceID, enum.ConferenceRejected)
+		assert.ErrorIs(t, err, errorpkg.ErrUpdateNotPendingConference)
 	})
 
 	t.Run("error - past conference approval", func(t *testing.T) {

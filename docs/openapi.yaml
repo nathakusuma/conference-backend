@@ -146,6 +146,32 @@ components:
           examples:
             - 0
 
+    Feedback:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "01948fd8-612f-401b-8068-003cda23b7fa"
+        comment:
+          type: string
+          minLength: 3
+          maxLength: 1000
+          example: "Great introduction to the topic. The speaker was very knowledgeable and engaging."
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-01-22T21:08:30.12715Z"
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+              example: "Natha Kusuma"
+
     Pagination:
       type: object
       properties:
@@ -308,6 +334,8 @@ tags:
     description: Conference management operations
   - name: Registrations
     description: Conference registration operations
+  - name: Feedbacks
+    description: Conference feedback operations
 
 paths:
   /auth/register/otp:
@@ -1736,5 +1764,176 @@ paths:
                   value:
                     message: "Cannot use after_id and before_id at the same time."
                     error_code: "INVALID_PAGINATION"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /feedbacks:
+    post:
+      tags:
+        - Feedbacks
+      summary: Create a feedback for a conference
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - conference_id
+                - comment
+              properties:
+                conference_id:
+                  type: string
+                  format: uuid
+                comment:
+                  type: string
+                  minLength: 3
+                  maxLength: 1000
+            example:
+              conference_id: "019470f2-392f-40c6-80d1-36af32ea8dfd"
+              comment: "Great conference! The speaker was very knowledgeable."
+      responses:
+        '201':
+          description: Feedback created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  feedback:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+              example:
+                feedback:
+                  id: "0194aed0-3af0-763d-a53f-4b087159fede"
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          description: Forbidden - Various cases
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notRegistered:
+                  summary: User not registered to conference
+                  value:
+                    message: "You're not registered to this conference."
+                    error_code: "USER_NOT_REGISTERED_TO_CONFERENCE"
+                hostFeedback:
+                  summary: Host attempting to give feedback
+                  value:
+                    message: "Host is not allowed to give feedback to their own conference."
+                    error_code: "HOST_CANNOT_GIVE_FEEDBACK"
+                notEnded:
+                  summary: Conference not ended
+                  value:
+                    message: "Conference has not ended yet. You're not allowed to give feedback."
+                    error_code: "CONFERENCE_NOT_ENDED"
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /feedbacks/conferences/{conference_id}:
+    get:
+      tags:
+        - Feedbacks
+      summary: Get feedbacks for a specific conference
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: conference_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: after_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: before_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+      responses:
+        '200':
+          description: List of feedbacks retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  feedbacks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Feedback'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+              example:
+                feedbacks:
+                  - id: "01948fd8-612f-401b-8068-003cda23b7fa"
+                    comment: "Great introduction to the topic. The speaker was very knowledgeable and engaging."
+                    created_at: "2025-01-22T21:08:30.12715Z"
+                    user:
+                      id: "0194143f-c12f-4032-80c4-18dcb3ba427e"
+                      name: "User 1"
+                pagination:
+                  has_more: false
+                  first_id: "01948fd8-612f-401b-8068-003cda23b7fa"
+                  last_id: "01949046-3e2f-408c-80ee-62be2a1f74ed"
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /feedbacks/{feedback_id}:
+    delete:
+      tags:
+        - Feedbacks
+      summary: Delete a specific feedback
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: feedback_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Feedback deleted successfully
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/ForbiddenRole'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'

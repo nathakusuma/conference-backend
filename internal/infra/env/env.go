@@ -27,7 +27,6 @@ type Env struct {
 	RedisDB                  int           `mapstructure:"REDIS_DB"`
 	JwtAccessSecretKey       []byte        // JWT_ACCESS_SECRET_KEY
 	JwtAccessExpireDuration  time.Duration // JWT_ACCESS_EXPIRE_DURATION
-	JwtRefreshSecretKey      []byte        // JWT_REFRESH_SECRET_KEY
 	JwtRefreshExpireDuration time.Duration // JWT_REFRESH_EXPIRE_DURATION
 	SmtpHost                 string        `mapstructure:"SMTP_HOST"`
 	SmtpPort                 int           `mapstructure:"SMTP_PORT"`
@@ -85,7 +84,6 @@ func NewEnv() *Env {
 
 		// Process JWT configurations
 		env.JwtAccessSecretKey = []byte(viperInstance.GetString("JWT_ACCESS_SECRET_KEY"))
-		env.JwtRefreshSecretKey = []byte(viperInstance.GetString("JWT_REFRESH_SECRET_KEY"))
 
 		// Parse durations
 		if err := parseDurations(env); err != nil {

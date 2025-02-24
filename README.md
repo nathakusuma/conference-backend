@@ -1,9 +1,8 @@
-# Astungkara API
+# Conference API
 
 [![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)]()
-[![Go Report Card](https://goreportcard.com/badge/github.com/nathakusuma/astungkara)]()
 
-Astungkara API is a robust conference management system. The system provides a
+Conference API is a robust conference management system. The system provides a
 comprehensive set of features for users, event coordinators, and administrators to manage conference sessions,
 registrations, feedback, and more. The API is built using Go and Fiber, with PostgreSQL as the database and Redis for
 temporary data storage.
@@ -57,12 +56,7 @@ temporary data storage.
 
 ### Setup Steps
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/nathakusuma/astungkara.git
-   cd astungkara
-   git checkout i-putu-natha-kusuma
-   ```
+1. Clone the repository and navigate to the project directory
 
 2. Configure environment variables:
    ```bash
@@ -84,14 +78,6 @@ temporary data storage.
 
 - API Documentation: `https://[HOSTNAME]/swagger`
 - Monitoring Dashboard: `https://[HOSTNAME]/grafana`
-
-## 🌐 Deployment
-
-The API is deployed and accessible at:
-
-```
-https://astungkara.nathakusuma.com
-```
 
 ## 🔒 Security
 
@@ -119,8 +105,6 @@ The system includes comprehensive monitoring:
 ---
 
 ## **⭐** Minimum Viable Product (MVP)
-
-As we have mentioned earlier, we need technology that can support Conference in the future. Please consider these features below:
 
 - New user can register account to the system ✔️
 - User can login to the system ✔️

@@ -5,6 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/nathakusuma/astungkara/domain/contract"
 	"github.com/redis/go-redis/v9"
+	"time"
 )
 
 type authRepository struct {
@@ -20,5 +21,5 @@ func NewAuthRepository(db *sqlx.DB, rds *redis.Client) contract.IAuthRepository 
 }
 
 func (r *authRepository) SetUserRegisterOTP(ctx context.Context, email string, otp string) error {
-	return nil
+	return r.rds.Set(ctx, "auth:"+email+":otp", otp, 10*time.Minute).Err()
 }

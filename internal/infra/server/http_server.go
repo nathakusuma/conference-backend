@@ -1,16 +1,22 @@
 package server
 
 import (
-	"fmt"
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
-	"github.com/nathakusuma/astungkara/internal/app/user/repository"
-	"github.com/nathakusuma/astungkara/internal/app/user/service"
+	"github.com/nathakusuma/astungkara/internal/app/auth/handler"
+	authrepo "github.com/nathakusuma/astungkara/internal/app/auth/repository"
+	authsvc "github.com/nathakusuma/astungkara/internal/app/auth/service"
+	userrepo "github.com/nathakusuma/astungkara/internal/app/user/repository"
+	usersvc "github.com/nathakusuma/astungkara/internal/app/user/service"
+	"github.com/nathakusuma/astungkara/internal/infra/env"
 	"github.com/nathakusuma/astungkara/internal/middleware"
 	"github.com/nathakusuma/astungkara/pkg/bcrypt"
+	"github.com/nathakusuma/astungkara/pkg/jwt"
 	"github.com/nathakusuma/astungkara/pkg/log"
+	"github.com/nathakusuma/astungkara/pkg/mail"
 	"github.com/nathakusuma/astungkara/pkg/uuidpkg"
+	"github.com/nathakusuma/astungkara/pkg/validator"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -67,8 +73,11 @@ func (s *httpServer) MountMiddlewares() {
 }
 
 func (s *httpServer) MountRoutes(db *sqlx.DB, rds *redis.Client) {
-	uuid := uuidpkg.GetUUID()
 	bcryptInstance := bcrypt.GetBcrypt()
+	jwtAccess := jwt.NewJwt(env.GetEnv().JwtAccessExpireDuration, env.GetEnv().JwtAccessSecretKey)
+	mailer := mail.NewMailDialer()
+	uuidInstance := uuidpkg.GetUUID()
+	validatorInstance := validator.NewValidator()
 
 	s.app.Get("/", func(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusOK).SendString("Astungkara Healthy")
@@ -77,9 +86,11 @@ func (s *httpServer) MountRoutes(db *sqlx.DB, rds *redis.Client) {
 	api := s.app.Group("/api")
 	v1 := api.Group("/v1")
 
-	userRepository := repository.NewUserRepository(db)
+	userRepository := userrepo.NewUserRepository(db)
+	authRepository := authrepo.NewAuthRepository(db, rds)
 
-	userService := service.NewUserService(userRepository, bcryptInstance, uuid)
+	userService := usersvc.NewUserService(userRepository, bcryptInstance, uuidInstance)
+	authService := authsvc.NewAuthService(authRepository, userService, bcryptInstance, jwtAccess, mailer, uuidInstance)
 
-	fmt.Println(v1, userService) // TODO: Just to avoid unused variable error
+	handler.InitAuthHandler(v1, validatorInstance, authService)
 }

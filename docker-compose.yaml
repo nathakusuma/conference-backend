@@ -137,6 +137,13 @@ services:
       - prometheus
     restart: always
 
+  migrate:
+    image: migrate/migrate:4
+    volumes:
+      - ./database/migration:/migration
+    networks:
+      - network
+
 volumes:
   postgres:
     driver: local

@@ -80,3 +80,7 @@ func (s *userService) CreateUser(ctx context.Context, req *dto.CreateUserRequest
 
 	return userID, nil
 }
+
+func (s *userService) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+	return nil, nil
+}

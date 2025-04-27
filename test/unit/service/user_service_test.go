@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"github.com/nathakusuma/astungkara/domain/contract"
 	"github.com/nathakusuma/astungkara/internal/app/user/service"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -153,6 +155,57 @@ func Test_UserService_CreateUser(t *testing.T) {
 
 		resultID, err := svc.CreateUser(ctx, req)
 		assert.Equal(t, uuid.Nil, resultID)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
+	})
+}
+
+func Test_UserService_GetUserByEmail(t *testing.T) {
+	ctx := context.Background()
+	email := "test@example.com"
+
+	t.Run("success", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		expectedUser := &entity.User{
+			ID:        uuid.New(),
+			Name:      "Test User",
+			Email:     email,
+			Role:      enum.RoleUser,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+
+		mocks.userRepo.EXPECT().
+			GetUserByField(ctx, "email", email).
+			Return(expectedUser, nil)
+
+		user, err := svc.GetUserByEmail(ctx, email)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedUser, user)
+	})
+
+	t.Run("error - user not found", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		mocks.userRepo.EXPECT().
+			GetUserByField(ctx, "email", email).
+			Return(nil, sql.ErrNoRows)
+
+		user, err := svc.GetUserByEmail(ctx, email)
+		assert.Nil(t, user)
+		assert.ErrorIs(t, err, errorpkg.ErrNotFound)
+	})
+
+	t.Run("error - repository error", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		mocks.userRepo.EXPECT().
+			GetUserByField(ctx, "email", email).
+			Return(nil, errors.New("db error"))
+
+		user, err := svc.GetUserByEmail(ctx, email)
+		assert.Nil(t, user)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
 	})

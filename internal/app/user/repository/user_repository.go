@@ -37,3 +37,7 @@ func (r *userRepository) createUser(ctx context.Context, tx sqlx.ExtContext, use
 
 	return nil
 }
+
+func (r *userRepository) GetUserByField(ctx context.Context, field, value string) (*entity.User, error) {
+	return nil, nil
+}

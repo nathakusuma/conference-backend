@@ -137,6 +137,17 @@ services:
       - prometheus
     restart: always
 
+  swagger-ui:
+    image: swaggerapi/swagger-ui:v5.18.2
+    volumes:
+      - ./docs/openapi.yaml:/usr/share/swagger/openapi.yaml
+    environment:
+      - SWAGGER_JSON=/usr/share/swagger/openapi.yaml
+      - PORT=8080
+    networks:
+      - network
+    restart: always
+
   migrate:
     image: migrate/migrate:4
     volumes:

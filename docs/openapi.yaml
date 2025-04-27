@@ -12,8 +12,8 @@ servers:
 paths:
   /auth/register/otp:
     post:
-      summary: Request OTP Register User With Email
-      operationId: requestRegisterOTP
+      summary: Request OTP Register User
+      operationId: requestOTPRegisterUser
       requestBody:
         required: true
         content:
@@ -53,6 +53,73 @@ paths:
                       tag: "required"
                       param: ""
                       translation: "Email is a required field"
+                error_code: "VALIDATION_ERROR"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "Something went wrong in our server. Please try again later."
+                error_code: "INTERNAL_SERVER_ERROR"
+                trace_id: "652e0a03-1c0a-404a-ac47-685d7ecb22d8"
+
+  /auth/register/otp/check:
+    post:
+      summary: Check OTP Register User
+      operationId: checkOTPRegisterUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  format: email
+                  examples:
+                    - "astungkara@nathakusuma.com"
+                otp:
+                  type: string
+                  minLength: 6
+                  maxLength: 6
+                  pattern: "^[0-9]{6}$"
+                  examples:
+                    - "123456"
+      responses:
+        '204':
+          description: Success - OTP verification successful
+        '401':
+          description: Invalid OTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "Invalid OTP. Please try again or request a new OTP."
+                error_code: "INVALID_OTP"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "There are invalid fields in your request. Please check and try again"
+                detail:
+                  - email:
+                      tag: "required"
+                      param: ""
+                      translation: "Email is a required field"
+                  - otp:
+                      tag: "required"
+                      param: ""
+                      translation: "OTP is a required field"
                 error_code: "VALIDATION_ERROR"
         '500':
           description: Internal server error

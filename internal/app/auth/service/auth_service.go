@@ -93,3 +93,7 @@ func (s *authService) RequestOTPRegisterUser(ctx context.Context, email string) 
 
 	return nil
 }
+
+func (s *authService) CheckOTPRegisterUser(ctx context.Context, email, otp string) error {
+	return nil
+}

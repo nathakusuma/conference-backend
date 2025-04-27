@@ -21,6 +21,63 @@ func (_m *MockIAuthRepository) EXPECT() *MockIAuthRepository_Expecter {
 	return &MockIAuthRepository_Expecter{mock: &_m.Mock}
 }
 
+// GetUserRegisterOTP provides a mock function with given fields: ctx, email
+func (_m *MockIAuthRepository) GetUserRegisterOTP(ctx context.Context, email string) (string, error) {
+	ret := _m.Called(ctx, email)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserRegisterOTP")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return rf(ctx, email)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, email)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, email)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockIAuthRepository_GetUserRegisterOTP_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserRegisterOTP'
+type MockIAuthRepository_GetUserRegisterOTP_Call struct {
+	*mock.Call
+}
+
+// GetUserRegisterOTP is a helper method to define mock.On call
+//   - ctx context.Context
+//   - email string
+func (_e *MockIAuthRepository_Expecter) GetUserRegisterOTP(ctx interface{}, email interface{}) *MockIAuthRepository_GetUserRegisterOTP_Call {
+	return &MockIAuthRepository_GetUserRegisterOTP_Call{Call: _e.mock.On("GetUserRegisterOTP", ctx, email)}
+}
+
+func (_c *MockIAuthRepository_GetUserRegisterOTP_Call) Run(run func(ctx context.Context, email string)) *MockIAuthRepository_GetUserRegisterOTP_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockIAuthRepository_GetUserRegisterOTP_Call) Return(_a0 string, _a1 error) *MockIAuthRepository_GetUserRegisterOTP_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockIAuthRepository_GetUserRegisterOTP_Call) RunAndReturn(run func(context.Context, string) (string, error)) *MockIAuthRepository_GetUserRegisterOTP_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetUserRegisterOTP provides a mock function with given fields: ctx, email, otp
 func (_m *MockIAuthRepository) SetUserRegisterOTP(ctx context.Context, email string, otp string) error {
 	ret := _m.Called(ctx, email, otp)

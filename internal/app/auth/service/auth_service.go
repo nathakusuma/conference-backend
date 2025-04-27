@@ -12,6 +12,7 @@ import (
 	"github.com/nathakusuma/astungkara/pkg/mail"
 	"github.com/nathakusuma/astungkara/pkg/randgen"
 	"github.com/nathakusuma/astungkara/pkg/uuidpkg"
+	"github.com/redis/go-redis/v9"
 	"net/url"
 	"strconv"
 )
@@ -95,5 +96,23 @@ func (s *authService) RequestOTPRegisterUser(ctx context.Context, email string) 
 }
 
 func (s *authService) CheckOTPRegisterUser(ctx context.Context, email, otp string) error {
+	savedOtp, err := s.repo.GetUserRegisterOTP(ctx, email)
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return errorpkg.ErrInvalidOTP
+		}
+
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+			"email": email,
+		}, "[AuthService][CheckOTPRegisterUser] failed to get otp")
+
+		return errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	if savedOtp != otp {
+		return errorpkg.ErrInvalidOTP
+	}
+
 	return nil
 }

@@ -25,5 +25,5 @@ func (r *authRepository) SetUserRegisterOTP(ctx context.Context, email string, o
 }
 
 func (r *authRepository) GetUserRegisterOTP(ctx context.Context, email string) (string, error) {
-	return "", nil
+	return r.rds.Get(ctx, "auth:"+email+":otp").Result()
 }

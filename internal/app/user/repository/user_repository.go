@@ -39,5 +39,27 @@ func (r *userRepository) createUser(ctx context.Context, tx sqlx.ExtContext, use
 }
 
 func (r *userRepository) GetUserByField(ctx context.Context, field, value string) (*entity.User, error) {
-	return nil, nil
+	var user entity.User
+
+	statement := `SELECT
+			id,
+			name,
+			email,
+			password_hash,
+			role,
+			auth_method,
+			created_at,
+			updated_at,
+			deleted_at
+		FROM users
+		WHERE ` + field + ` = $1
+		AND deleted_at IS NULL
+		`
+
+	err := r.conn.GetContext(ctx, &user, statement, value)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }

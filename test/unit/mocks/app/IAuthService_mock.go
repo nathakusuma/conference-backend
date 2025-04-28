@@ -5,6 +5,8 @@ package mocks
 import (
 	context "context"
 
+	dto "github.com/nathakusuma/astungkara/domain/dto"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -65,6 +67,63 @@ func (_c *MockIAuthService_CheckOTPRegisterUser_Call) Return(_a0 error) *MockIAu
 }
 
 func (_c *MockIAuthService_CheckOTPRegisterUser_Call) RunAndReturn(run func(context.Context, string, string) error) *MockIAuthService_CheckOTPRegisterUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// LoginUser provides a mock function with given fields: ctx, req
+func (_m *MockIAuthService) LoginUser(ctx context.Context, req dto.LoginUserRequest) (dto.LoginResponse, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for LoginUser")
+	}
+
+	var r0 dto.LoginResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, dto.LoginUserRequest) (dto.LoginResponse, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, dto.LoginUserRequest) dto.LoginResponse); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Get(0).(dto.LoginResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, dto.LoginUserRequest) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockIAuthService_LoginUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LoginUser'
+type MockIAuthService_LoginUser_Call struct {
+	*mock.Call
+}
+
+// LoginUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req dto.LoginUserRequest
+func (_e *MockIAuthService_Expecter) LoginUser(ctx interface{}, req interface{}) *MockIAuthService_LoginUser_Call {
+	return &MockIAuthService_LoginUser_Call{Call: _e.mock.On("LoginUser", ctx, req)}
+}
+
+func (_c *MockIAuthService_LoginUser_Call) Run(run func(ctx context.Context, req dto.LoginUserRequest)) *MockIAuthService_LoginUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(dto.LoginUserRequest))
+	})
+	return _c
+}
+
+func (_c *MockIAuthService_LoginUser_Call) Return(_a0 dto.LoginResponse, _a1 error) *MockIAuthService_LoginUser_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockIAuthService_LoginUser_Call) RunAndReturn(run func(context.Context, dto.LoginUserRequest) (dto.LoginResponse, error)) *MockIAuthService_LoginUser_Call {
 	_c.Call.Return(run)
 	return _c
 }

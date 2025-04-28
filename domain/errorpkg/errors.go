@@ -13,6 +13,10 @@ var (
 		WithErrorCode("FAIL_PARSE_REQUEST").
 		WithMessage("Failed to parse request. Please check your request format.")
 
+	ErrCredentialsNotMatch = NewError(http.StatusUnauthorized).
+		WithErrorCode("CREDENTIALS_NOT_MATCH").
+		WithMessage("Credentials do not match. Please try again.")
+
 	ErrInvalidOTP = NewError(http.StatusUnauthorized).
 		WithErrorCode("INVALID_OTP").
 		WithMessage("Invalid OTP. Please try again or request a new OTP.")

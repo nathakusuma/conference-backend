@@ -22,15 +22,15 @@ func NewAuthRepository(db *sqlx.DB, rds *redis.Client) contract.IAuthRepository 
 }
 
 func (r *authRepository) SetUserRegisterOTP(ctx context.Context, email string, otp string) error {
-	return r.rds.Set(ctx, "auth:"+email+":otp", otp, 10*time.Minute).Err()
+	return r.rds.Set(ctx, "auth:"+email+":register_otp", otp, 10*time.Minute).Err()
 }
 
 func (r *authRepository) GetUserRegisterOTP(ctx context.Context, email string) (string, error) {
-	return r.rds.Get(ctx, "auth:"+email+":otp").Result()
+	return r.rds.Get(ctx, "auth:"+email+":register_otp").Result()
 }
 
 func (r *authRepository) DeleteUserRegisterOTP(ctx context.Context, email string) error {
-	return r.rds.Del(ctx, "auth:"+email+":otp").Err()
+	return r.rds.Del(ctx, "auth:"+email+":register_otp").Err()
 }
 
 func (r *authRepository) CreateSession(ctx context.Context, session *entity.Session) error {

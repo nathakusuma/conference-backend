@@ -27,7 +27,7 @@ var (
 
 	ErrInvalidBearerToken = NewError(http.StatusUnauthorized).
 		WithErrorCode("INVALID_BEARER_TOKEN").
-		WithMessage("Your session is invalid. Please renew your session.")
+		WithMessage("Your auth session is invalid. Please renew your auth session.")
 
 	ErrInvalidOTP = NewError(http.StatusUnauthorized).
 		WithErrorCode("INVALID_OTP").
@@ -35,7 +35,7 @@ var (
 
 	ErrInvalidRefreshToken = NewError(http.StatusUnauthorized).
 		WithErrorCode("INVALID_REFRESH_TOKEN").
-		WithMessage("Session is invalid. Please login again.")
+		WithMessage("Auth session is invalid. Please login again.")
 
 	ErrNoBearerToken = NewError(http.StatusUnauthorized).
 		WithErrorCode("NO_BEARER_TOKEN").

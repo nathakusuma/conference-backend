@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/nathakusuma/astungkara/domain/contract"
 	"github.com/nathakusuma/astungkara/domain/dto"
+	"github.com/nathakusuma/astungkara/domain/entity"
 	"github.com/nathakusuma/astungkara/domain/errorpkg"
 	"github.com/nathakusuma/astungkara/internal/infra/env"
 	"github.com/nathakusuma/astungkara/pkg/bcrypt"
@@ -16,6 +17,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 type authService struct {
@@ -121,5 +123,93 @@ func (s *authService) CheckOTPRegisterUser(ctx context.Context, email, otp strin
 func (s *authService) LoginUser(ctx context.Context,
 	req dto.LoginUserRequest) (dto.LoginResponse, error) {
 
-	return dto.LoginResponse{}, nil
+	var resp dto.LoginResponse
+
+	// get user by email
+	user, err := s.userSvc.GetUserByEmail(ctx, req.Email)
+	if err != nil {
+		if errors.Is(err, errorpkg.ErrNotFound) {
+			return resp, errorpkg.ErrNotFound.WithMessage("User not found. Please register first.")
+		}
+
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+			"email": req.Email,
+		}, "[AuthService][LoginUser] failed to get user by email")
+
+		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	// check password
+	ok := s.bcrypt.Compare(req.Password, user.PasswordHash)
+	if !ok {
+		return resp, errorpkg.ErrCredentialsNotMatch
+	}
+
+	// Create channels for token generation results
+	type tokenResult struct {
+		token string
+		err   error
+	}
+	accessTokenCh := make(chan tokenResult)
+	refreshTokenCh := make(chan tokenResult)
+
+	// Generate access token
+	go func() {
+		token, err := s.jwt.Create(user.ID, user.Role)
+		accessTokenCh <- tokenResult{token: token, err: err}
+	}()
+
+	// Generate and store refresh token
+	go func() {
+		refreshToken := randgen.RandomString(64)
+		err := s.repo.CreateSession(ctx, &entity.Session{
+			UserID:    user.ID,
+			Token:     refreshToken,
+			ExpiresAt: time.Now().Add(env.GetEnv().JwtRefreshExpireDuration),
+		})
+		refreshTokenCh <- tokenResult{token: refreshToken, err: err}
+	}()
+
+	var accessResult, refreshResult tokenResult
+	resultsReceived := 0
+
+	// Wait for both operations to complete in any order
+	for resultsReceived < 2 {
+		select {
+		case accessResult = <-accessTokenCh:
+			if accessResult.err != nil {
+				traceID := log.ErrorWithTraceID(map[string]interface{}{
+					"error": accessResult.err.Error(),
+					"email": req.Email,
+				}, "[AuthService][LoginUser] failed to generate access token")
+				return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
+			}
+			resultsReceived++
+
+		case refreshResult = <-refreshTokenCh:
+			if refreshResult.err != nil {
+				traceID := log.ErrorWithTraceID(map[string]interface{}{
+					"error": refreshResult.err.Error(),
+					"email": req.Email,
+				}, "[AuthService][LoginUser] failed to store session")
+				return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
+			}
+			resultsReceived++
+		}
+	}
+
+	userResp := dto.UserResponse{}
+	userResp.PopulateFromEntity(user)
+	resp = dto.LoginResponse{
+		AccessToken:  accessResult.token,
+		RefreshToken: refreshResult.token,
+		User:         &userResp,
+	}
+
+	log.Info(map[string]interface{}{
+		"email": req.Email,
+	}, "[AuthService][LoginUser] user logged in")
+
+	return resp, nil
 }

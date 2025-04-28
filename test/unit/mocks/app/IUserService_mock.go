@@ -204,6 +204,54 @@ func (_c *MockIUserService_GetUserByID_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// UpdatePassword provides a mock function with given fields: ctx, email, newPassword
+func (_m *MockIUserService) UpdatePassword(ctx context.Context, email string, newPassword string) error {
+	ret := _m.Called(ctx, email, newPassword)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatePassword")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, email, newPassword)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockIUserService_UpdatePassword_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdatePassword'
+type MockIUserService_UpdatePassword_Call struct {
+	*mock.Call
+}
+
+// UpdatePassword is a helper method to define mock.On call
+//   - ctx context.Context
+//   - email string
+//   - newPassword string
+func (_e *MockIUserService_Expecter) UpdatePassword(ctx interface{}, email interface{}, newPassword interface{}) *MockIUserService_UpdatePassword_Call {
+	return &MockIUserService_UpdatePassword_Call{Call: _e.mock.On("UpdatePassword", ctx, email, newPassword)}
+}
+
+func (_c *MockIUserService_UpdatePassword_Call) Run(run func(ctx context.Context, email string, newPassword string)) *MockIUserService_UpdatePassword_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *MockIUserService_UpdatePassword_Call) Return(_a0 error) *MockIUserService_UpdatePassword_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockIUserService_UpdatePassword_Call) RunAndReturn(run func(context.Context, string, string) error) *MockIUserService_UpdatePassword_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockIUserService creates a new instance of MockIUserService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockIUserService(t interface {

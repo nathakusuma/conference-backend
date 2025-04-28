@@ -335,6 +335,110 @@ func (_c *MockIAuthService_RequestOTPRegisterUser_Call) RunAndReturn(run func(co
 	return _c
 }
 
+// RequestOTPResetPassword provides a mock function with given fields: ctx, email
+func (_m *MockIAuthService) RequestOTPResetPassword(ctx context.Context, email string) error {
+	ret := _m.Called(ctx, email)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RequestOTPResetPassword")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, email)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockIAuthService_RequestOTPResetPassword_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RequestOTPResetPassword'
+type MockIAuthService_RequestOTPResetPassword_Call struct {
+	*mock.Call
+}
+
+// RequestOTPResetPassword is a helper method to define mock.On call
+//   - ctx context.Context
+//   - email string
+func (_e *MockIAuthService_Expecter) RequestOTPResetPassword(ctx interface{}, email interface{}) *MockIAuthService_RequestOTPResetPassword_Call {
+	return &MockIAuthService_RequestOTPResetPassword_Call{Call: _e.mock.On("RequestOTPResetPassword", ctx, email)}
+}
+
+func (_c *MockIAuthService_RequestOTPResetPassword_Call) Run(run func(ctx context.Context, email string)) *MockIAuthService_RequestOTPResetPassword_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockIAuthService_RequestOTPResetPassword_Call) Return(_a0 error) *MockIAuthService_RequestOTPResetPassword_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockIAuthService_RequestOTPResetPassword_Call) RunAndReturn(run func(context.Context, string) error) *MockIAuthService_RequestOTPResetPassword_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ResetPassword provides a mock function with given fields: ctx, req
+func (_m *MockIAuthService) ResetPassword(ctx context.Context, req dto.ResetPasswordRequest) (dto.LoginResponse, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ResetPassword")
+	}
+
+	var r0 dto.LoginResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, dto.ResetPasswordRequest) (dto.LoginResponse, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, dto.ResetPasswordRequest) dto.LoginResponse); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Get(0).(dto.LoginResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, dto.ResetPasswordRequest) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockIAuthService_ResetPassword_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResetPassword'
+type MockIAuthService_ResetPassword_Call struct {
+	*mock.Call
+}
+
+// ResetPassword is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req dto.ResetPasswordRequest
+func (_e *MockIAuthService_Expecter) ResetPassword(ctx interface{}, req interface{}) *MockIAuthService_ResetPassword_Call {
+	return &MockIAuthService_ResetPassword_Call{Call: _e.mock.On("ResetPassword", ctx, req)}
+}
+
+func (_c *MockIAuthService_ResetPassword_Call) Run(run func(ctx context.Context, req dto.ResetPasswordRequest)) *MockIAuthService_ResetPassword_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(dto.ResetPasswordRequest))
+	})
+	return _c
+}
+
+func (_c *MockIAuthService_ResetPassword_Call) Return(_a0 dto.LoginResponse, _a1 error) *MockIAuthService_ResetPassword_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockIAuthService_ResetPassword_Call) RunAndReturn(run func(context.Context, dto.ResetPasswordRequest) (dto.LoginResponse, error)) *MockIAuthService_ResetPassword_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockIAuthService creates a new instance of MockIAuthService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockIAuthService(t interface {

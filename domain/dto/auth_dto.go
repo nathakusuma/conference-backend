@@ -30,3 +30,13 @@ type LoginResponse struct {
 type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" validate:"required"`
 }
+
+type RequestOTPResetPasswordRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+type ResetPasswordRequest struct {
+	Email       string `json:"email" validate:"required,email"`
+	OTP         string `json:"otp" validate:"required"`
+	NewPassword string `json:"new_password" validate:"required,min=8,max=72,ascii"`
+}

@@ -276,3 +276,111 @@ func Test_UserService_GetUserByID(t *testing.T) {
 		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 }
+
+func Test_UserService_UpdatePassword(t *testing.T) {
+	ctx := context.Background()
+	email := "test@example.com"
+	newPassword := "newPassword123"
+	hashedPassword := "hashed_new_password"
+
+	t.Run("success", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		existingUser := &entity.User{
+			ID:           uuid.New(),
+			Name:         "Test User",
+			Email:        email,
+			PasswordHash: "old_password_hash",
+			Role:         enum.RoleUser,
+		}
+
+		// Expect to get user by email
+		mocks.userRepo.EXPECT().
+			GetUserByField(ctx, "email", email).
+			Return(existingUser, nil)
+
+		// Expect password hashing
+		mocks.bcrypt.EXPECT().
+			Hash(newPassword).
+			Return(hashedPassword, nil)
+
+		// Expect user update
+		updatedUser := *existingUser
+		updatedUser.PasswordHash = hashedPassword
+		mocks.userRepo.EXPECT().
+			UpdateUser(ctx, &updatedUser).
+			Return(nil)
+
+		err := svc.UpdatePassword(ctx, email, newPassword)
+		assert.NoError(t, err)
+	})
+
+	t.Run("error - user not found", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		// Expect to get user by email - returns not found
+		mocks.userRepo.EXPECT().
+			GetUserByField(ctx, "email", email).
+			Return(nil, sql.ErrNoRows)
+
+		err := svc.UpdatePassword(ctx, email, newPassword)
+		assert.ErrorIs(t, err, errorpkg.ErrNotFound)
+	})
+
+	t.Run("error - password hashing fails", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		existingUser := &entity.User{
+			ID:           uuid.New(),
+			Name:         "Test User",
+			Email:        email,
+			PasswordHash: "old_password_hash",
+			Role:         enum.RoleUser,
+		}
+
+		// Expect to get user by email
+		mocks.userRepo.EXPECT().
+			GetUserByField(ctx, "email", email).
+			Return(existingUser, nil)
+
+		// Expect password hashing to fail
+		mocks.bcrypt.EXPECT().
+			Hash(newPassword).
+			Return("", errors.New("hashing error"))
+
+		err := svc.UpdatePassword(ctx, email, newPassword)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+
+	t.Run("error - update user fails", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		existingUser := &entity.User{
+			ID:           uuid.New(),
+			Name:         "Test User",
+			Email:        email,
+			PasswordHash: "old_password_hash",
+			Role:         enum.RoleUser,
+		}
+
+		// Expect to get user by email
+		mocks.userRepo.EXPECT().
+			GetUserByField(ctx, "email", email).
+			Return(existingUser, nil)
+
+		// Expect password hashing
+		mocks.bcrypt.EXPECT().
+			Hash(newPassword).
+			Return(hashedPassword, nil)
+
+		// Expect user update to fail
+		updatedUser := *existingUser
+		updatedUser.PasswordHash = hashedPassword
+		mocks.userRepo.EXPECT().
+			UpdateUser(ctx, &updatedUser).
+			Return(errors.New("db error"))
+
+		err := svc.UpdatePassword(ctx, email, newPassword)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+}

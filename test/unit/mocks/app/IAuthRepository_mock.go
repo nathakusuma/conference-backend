@@ -166,6 +166,53 @@ func (_c *MockIAuthRepository_DeleteUserRegisterOTP_Call) RunAndReturn(run func(
 	return _c
 }
 
+// DeleteUserResetPasswordOTP provides a mock function with given fields: ctx, email
+func (_m *MockIAuthRepository) DeleteUserResetPasswordOTP(ctx context.Context, email string) error {
+	ret := _m.Called(ctx, email)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteUserResetPasswordOTP")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, email)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockIAuthRepository_DeleteUserResetPasswordOTP_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteUserResetPasswordOTP'
+type MockIAuthRepository_DeleteUserResetPasswordOTP_Call struct {
+	*mock.Call
+}
+
+// DeleteUserResetPasswordOTP is a helper method to define mock.On call
+//   - ctx context.Context
+//   - email string
+func (_e *MockIAuthRepository_Expecter) DeleteUserResetPasswordOTP(ctx interface{}, email interface{}) *MockIAuthRepository_DeleteUserResetPasswordOTP_Call {
+	return &MockIAuthRepository_DeleteUserResetPasswordOTP_Call{Call: _e.mock.On("DeleteUserResetPasswordOTP", ctx, email)}
+}
+
+func (_c *MockIAuthRepository_DeleteUserResetPasswordOTP_Call) Run(run func(ctx context.Context, email string)) *MockIAuthRepository_DeleteUserResetPasswordOTP_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockIAuthRepository_DeleteUserResetPasswordOTP_Call) Return(_a0 error) *MockIAuthRepository_DeleteUserResetPasswordOTP_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockIAuthRepository_DeleteUserResetPasswordOTP_Call) RunAndReturn(run func(context.Context, string) error) *MockIAuthRepository_DeleteUserResetPasswordOTP_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetSessionByToken provides a mock function with given fields: ctx, token
 func (_m *MockIAuthRepository) GetSessionByToken(ctx context.Context, token string) (*entity.Session, error) {
 	ret := _m.Called(ctx, token)
@@ -282,6 +329,63 @@ func (_c *MockIAuthRepository_GetUserRegisterOTP_Call) RunAndReturn(run func(con
 	return _c
 }
 
+// GetUserResetPasswordOTP provides a mock function with given fields: ctx, email
+func (_m *MockIAuthRepository) GetUserResetPasswordOTP(ctx context.Context, email string) (string, error) {
+	ret := _m.Called(ctx, email)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserResetPasswordOTP")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return rf(ctx, email)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, email)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, email)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockIAuthRepository_GetUserResetPasswordOTP_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserResetPasswordOTP'
+type MockIAuthRepository_GetUserResetPasswordOTP_Call struct {
+	*mock.Call
+}
+
+// GetUserResetPasswordOTP is a helper method to define mock.On call
+//   - ctx context.Context
+//   - email string
+func (_e *MockIAuthRepository_Expecter) GetUserResetPasswordOTP(ctx interface{}, email interface{}) *MockIAuthRepository_GetUserResetPasswordOTP_Call {
+	return &MockIAuthRepository_GetUserResetPasswordOTP_Call{Call: _e.mock.On("GetUserResetPasswordOTP", ctx, email)}
+}
+
+func (_c *MockIAuthRepository_GetUserResetPasswordOTP_Call) Run(run func(ctx context.Context, email string)) *MockIAuthRepository_GetUserResetPasswordOTP_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockIAuthRepository_GetUserResetPasswordOTP_Call) Return(_a0 string, _a1 error) *MockIAuthRepository_GetUserResetPasswordOTP_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockIAuthRepository_GetUserResetPasswordOTP_Call) RunAndReturn(run func(context.Context, string) (string, error)) *MockIAuthRepository_GetUserResetPasswordOTP_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetUserRegisterOTP provides a mock function with given fields: ctx, email, otp
 func (_m *MockIAuthRepository) SetUserRegisterOTP(ctx context.Context, email string, otp string) error {
 	ret := _m.Called(ctx, email, otp)
@@ -326,6 +430,54 @@ func (_c *MockIAuthRepository_SetUserRegisterOTP_Call) Return(_a0 error) *MockIA
 }
 
 func (_c *MockIAuthRepository_SetUserRegisterOTP_Call) RunAndReturn(run func(context.Context, string, string) error) *MockIAuthRepository_SetUserRegisterOTP_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetUserResetPasswordOTP provides a mock function with given fields: ctx, email, otp
+func (_m *MockIAuthRepository) SetUserResetPasswordOTP(ctx context.Context, email string, otp string) error {
+	ret := _m.Called(ctx, email, otp)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetUserResetPasswordOTP")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, email, otp)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockIAuthRepository_SetUserResetPasswordOTP_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetUserResetPasswordOTP'
+type MockIAuthRepository_SetUserResetPasswordOTP_Call struct {
+	*mock.Call
+}
+
+// SetUserResetPasswordOTP is a helper method to define mock.On call
+//   - ctx context.Context
+//   - email string
+//   - otp string
+func (_e *MockIAuthRepository_Expecter) SetUserResetPasswordOTP(ctx interface{}, email interface{}, otp interface{}) *MockIAuthRepository_SetUserResetPasswordOTP_Call {
+	return &MockIAuthRepository_SetUserResetPasswordOTP_Call{Call: _e.mock.On("SetUserResetPasswordOTP", ctx, email, otp)}
+}
+
+func (_c *MockIAuthRepository_SetUserResetPasswordOTP_Call) Run(run func(ctx context.Context, email string, otp string)) *MockIAuthRepository_SetUserResetPasswordOTP_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *MockIAuthRepository_SetUserResetPasswordOTP_Call) Return(_a0 error) *MockIAuthRepository_SetUserResetPasswordOTP_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockIAuthRepository_SetUserResetPasswordOTP_Call) RunAndReturn(run func(context.Context, string, string) error) *MockIAuthRepository_SetUserResetPasswordOTP_Call {
 	_c.Call.Return(run)
 	return _c
 }

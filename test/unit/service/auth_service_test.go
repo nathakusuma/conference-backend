@@ -60,7 +60,7 @@ func Test_AuthService_RequestOTPRegisterUser(t *testing.T) {
 
 		// Expect OTP to be set
 		mocks.authRepo.EXPECT().
-			SetUserRegisterOTP(ctx, email, mock.AnythingOfType("string")).
+			SetOTPRegisterUser(ctx, email, mock.AnythingOfType("string")).
 			Return(nil)
 
 		// Mock email sending with channel notification
@@ -93,7 +93,7 @@ func Test_AuthService_RequestOTPRegisterUser(t *testing.T) {
 
 		// Expect OTP to be set
 		mocks.authRepo.EXPECT().
-			SetUserRegisterOTP(ctx, email, mock.AnythingOfType("string")).
+			SetOTPRegisterUser(ctx, email, mock.AnythingOfType("string")).
 			Return(nil)
 
 		// Mock email sending to fail
@@ -149,7 +149,7 @@ func Test_AuthService_RequestOTPRegisterUser(t *testing.T) {
 			Return(nil, errorpkg.ErrNotFound)
 
 		mocks.authRepo.EXPECT().
-			SetUserRegisterOTP(ctx, email, mock.AnythingOfType("string")).
+			SetOTPRegisterUser(ctx, email, mock.AnythingOfType("string")).
 			Return(errors.New("redis error"))
 
 		err := svc.RequestOTPRegisterUser(ctx, email)
@@ -167,7 +167,7 @@ func Test_AuthService_CheckOTPRegisterUser(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetUserRegisterOTP(ctx, email).
+			GetOTPRegisterUser(ctx, email).
 			Return(otp, nil)
 
 		err := svc.CheckOTPRegisterUser(ctx, email, otp)
@@ -178,7 +178,7 @@ func Test_AuthService_CheckOTPRegisterUser(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetUserRegisterOTP(ctx, email).
+			GetOTPRegisterUser(ctx, email).
 			Return("", redis.Nil)
 
 		err := svc.CheckOTPRegisterUser(ctx, email, otp)
@@ -189,7 +189,7 @@ func Test_AuthService_CheckOTPRegisterUser(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetUserRegisterOTP(ctx, email).
+			GetOTPRegisterUser(ctx, email).
 			Return("", errors.New("redis error"))
 
 		err := svc.CheckOTPRegisterUser(ctx, email, otp)
@@ -201,7 +201,7 @@ func Test_AuthService_CheckOTPRegisterUser(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetUserRegisterOTP(ctx, email).
+			GetOTPRegisterUser(ctx, email).
 			Return("654321", nil)
 
 		err := svc.CheckOTPRegisterUser(ctx, email, otp)
@@ -420,11 +420,11 @@ func Test_AuthService_RegisterUser(t *testing.T) {
 
 		// Setup expectations
 		mocks.authRepo.EXPECT().
-			GetUserRegisterOTP(ctx, req.Email).
+			GetOTPRegisterUser(ctx, req.Email).
 			Return(req.OTP, nil)
 
 		mocks.authRepo.EXPECT().
-			DeleteUserRegisterOTP(ctx, req.Email).
+			DeleteOTPRegisterUser(ctx, req.Email).
 			Return(nil)
 
 		userID := uuid.New()
@@ -450,7 +450,7 @@ func Test_AuthService_RegisterUser(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetUserRegisterOTP(ctx, req.Email).
+			GetOTPRegisterUser(ctx, req.Email).
 			Return("", redis.Nil)
 
 		resp, err := svc.RegisterUser(ctx, req)
@@ -462,7 +462,7 @@ func Test_AuthService_RegisterUser(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetUserRegisterOTP(ctx, req.Email).
+			GetOTPRegisterUser(ctx, req.Email).
 			Return("different-otp", nil)
 
 		resp, err := svc.RegisterUser(ctx, req)
@@ -474,7 +474,7 @@ func Test_AuthService_RegisterUser(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetUserRegisterOTP(ctx, req.Email).
+			GetOTPRegisterUser(ctx, req.Email).
 			Return("", errors.New("redis error"))
 
 		resp, err := svc.RegisterUser(ctx, req)
@@ -487,11 +487,11 @@ func Test_AuthService_RegisterUser(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetUserRegisterOTP(ctx, req.Email).
+			GetOTPRegisterUser(ctx, req.Email).
 			Return(req.OTP, nil)
 
 		mocks.authRepo.EXPECT().
-			DeleteUserRegisterOTP(ctx, req.Email).
+			DeleteOTPRegisterUser(ctx, req.Email).
 			Return(errors.New("redis error"))
 
 		resp, err := svc.RegisterUser(ctx, req)
@@ -504,11 +504,11 @@ func Test_AuthService_RegisterUser(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetUserRegisterOTP(ctx, req.Email).
+			GetOTPRegisterUser(ctx, req.Email).
 			Return(req.OTP, nil)
 
 		mocks.authRepo.EXPECT().
-			DeleteUserRegisterOTP(ctx, req.Email).
+			DeleteOTPRegisterUser(ctx, req.Email).
 			Return(nil)
 
 		mocks.userSvc.EXPECT().
@@ -785,7 +785,7 @@ func Test_AuthService_RequestOTPResetPassword(t *testing.T) {
 
 		// Expect OTP to be set
 		mocks.authRepo.EXPECT().
-			SetUserResetPasswordOTP(ctx, email, mock.AnythingOfType("string")).
+			SetOTPResetPassword(ctx, email, mock.AnythingOfType("string")).
 			Return(nil)
 
 		// Mock email sending with channel notification
@@ -839,7 +839,7 @@ func Test_AuthService_RequestOTPResetPassword(t *testing.T) {
 			Return(&entity.User{ID: uuid.New()}, nil)
 
 		mocks.authRepo.EXPECT().
-			SetUserResetPasswordOTP(ctx, email, mock.AnythingOfType("string")).
+			SetOTPResetPassword(ctx, email, mock.AnythingOfType("string")).
 			Return(errors.New("redis error"))
 
 		err := svc.RequestOTPResetPassword(ctx, email)
@@ -856,7 +856,7 @@ func Test_AuthService_RequestOTPResetPassword(t *testing.T) {
 			Return(&entity.User{ID: uuid.New()}, nil)
 
 		mocks.authRepo.EXPECT().
-			SetUserResetPasswordOTP(ctx, email, mock.AnythingOfType("string")).
+			SetOTPResetPassword(ctx, email, mock.AnythingOfType("string")).
 			Return(nil)
 
 		mocks.mailer.EXPECT().
@@ -891,11 +891,11 @@ func Test_AuthService_ResetPassword(t *testing.T) {
 
 		// Setup expectations for password reset
 		mocks.authRepo.EXPECT().
-			GetUserResetPasswordOTP(ctx, req.Email).
+			GetOTPResetPassword(ctx, req.Email).
 			Return(req.OTP, nil)
 
 		mocks.authRepo.EXPECT().
-			SetUserResetPasswordOTP(ctx, req.Email, "").
+			SetOTPResetPassword(ctx, req.Email, "").
 			Return(nil)
 
 		mocks.userSvc.EXPECT().
@@ -916,7 +916,7 @@ func Test_AuthService_ResetPassword(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetUserResetPasswordOTP(ctx, req.Email).
+			GetOTPResetPassword(ctx, req.Email).
 			Return("", redis.Nil)
 
 		resp, err := svc.ResetPassword(ctx, req)
@@ -928,7 +928,7 @@ func Test_AuthService_ResetPassword(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetUserResetPasswordOTP(ctx, req.Email).
+			GetOTPResetPassword(ctx, req.Email).
 			Return("", errors.New("redis error"))
 
 		resp, err := svc.ResetPassword(ctx, req)
@@ -941,7 +941,7 @@ func Test_AuthService_ResetPassword(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetUserResetPasswordOTP(ctx, req.Email).
+			GetOTPResetPassword(ctx, req.Email).
 			Return("different-otp", nil)
 
 		resp, err := svc.ResetPassword(ctx, req)
@@ -953,11 +953,11 @@ func Test_AuthService_ResetPassword(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetUserResetPasswordOTP(ctx, req.Email).
+			GetOTPResetPassword(ctx, req.Email).
 			Return(req.OTP, nil)
 
 		mocks.authRepo.EXPECT().
-			SetUserResetPasswordOTP(ctx, req.Email, "").
+			SetOTPResetPassword(ctx, req.Email, "").
 			Return(errors.New("redis error"))
 
 		resp, err := svc.ResetPassword(ctx, req)
@@ -970,11 +970,11 @@ func Test_AuthService_ResetPassword(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetUserResetPasswordOTP(ctx, req.Email).
+			GetOTPResetPassword(ctx, req.Email).
 			Return(req.OTP, nil)
 
 		mocks.authRepo.EXPECT().
-			SetUserResetPasswordOTP(ctx, req.Email, "").
+			SetOTPResetPassword(ctx, req.Email, "").
 			Return(nil)
 
 		mocks.userSvc.EXPECT().
@@ -991,11 +991,11 @@ func Test_AuthService_ResetPassword(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
 		mocks.authRepo.EXPECT().
-			GetUserResetPasswordOTP(ctx, req.Email).
+			GetOTPResetPassword(ctx, req.Email).
 			Return(req.OTP, nil)
 
 		mocks.authRepo.EXPECT().
-			SetUserResetPasswordOTP(ctx, req.Email, "").
+			SetOTPResetPassword(ctx, req.Email, "").
 			Return(nil)
 
 		mocks.userSvc.EXPECT().
@@ -1012,11 +1012,11 @@ func Test_AuthService_ResetPassword(t *testing.T) {
 
 		// Success up to password update
 		mocks.authRepo.EXPECT().
-			GetUserResetPasswordOTP(ctx, req.Email).
+			GetOTPResetPassword(ctx, req.Email).
 			Return(req.OTP, nil)
 
 		mocks.authRepo.EXPECT().
-			SetUserResetPasswordOTP(ctx, req.Email, "").
+			SetOTPResetPassword(ctx, req.Email, "").
 			Return(nil)
 
 		mocks.userSvc.EXPECT().

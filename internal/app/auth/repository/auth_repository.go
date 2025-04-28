@@ -23,15 +23,15 @@ func NewAuthRepository(db *sqlx.DB, rds *redis.Client) contract.IAuthRepository 
 	}
 }
 
-func (r *authRepository) SetUserRegisterOTP(ctx context.Context, email string, otp string) error {
+func (r *authRepository) SetOTPRegisterUser(ctx context.Context, email string, otp string) error {
 	return r.rds.Set(ctx, "auth:"+email+":register_otp", otp, 10*time.Minute).Err()
 }
 
-func (r *authRepository) GetUserRegisterOTP(ctx context.Context, email string) (string, error) {
+func (r *authRepository) GetOTPRegisterUser(ctx context.Context, email string) (string, error) {
 	return r.rds.Get(ctx, "auth:"+email+":register_otp").Result()
 }
 
-func (r *authRepository) DeleteUserRegisterOTP(ctx context.Context, email string) error {
+func (r *authRepository) DeleteOTPRegisterUser(ctx context.Context, email string) error {
 	return r.rds.Del(ctx, "auth:"+email+":register_otp").Err()
 }
 
@@ -95,14 +95,14 @@ func (r *authRepository) DeleteAuthSession(ctx context.Context, userID uuid.UUID
 	return r.deleteAuthSession(ctx, r.db, userID)
 }
 
-func (r *authRepository) SetUserResetPasswordOTP(ctx context.Context, email, otp string) error {
+func (r *authRepository) SetOTPResetPassword(ctx context.Context, email, otp string) error {
 	return r.rds.Set(ctx, "auth:"+email+":reset_password_otp", otp, 10*time.Minute).Err()
 }
 
-func (r *authRepository) GetUserResetPasswordOTP(ctx context.Context, email string) (string, error) {
+func (r *authRepository) GetOTPResetPassword(ctx context.Context, email string) (string, error) {
 	return r.rds.Get(ctx, "auth:"+email+":reset_password_otp").Result()
 }
 
-func (r *authRepository) DeleteUserResetPasswordOTP(ctx context.Context, email string) error {
+func (r *authRepository) DeleteOTPResetPassword(ctx context.Context, email string) error {
 	return r.rds.Del(ctx, "auth:"+email+":reset_password_otp").Err()
 }

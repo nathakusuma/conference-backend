@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/nathakusuma/astungkara/domain/contract"
 	"github.com/nathakusuma/astungkara/domain/entity"
@@ -67,4 +69,28 @@ func (r *authRepository) GetSessionByToken(ctx context.Context, token string) (*
 	}
 
 	return &session, nil
+}
+
+func (r *authRepository) deleteSession(ctx context.Context, tx sqlx.ExtContext, userID uuid.UUID) error {
+	query := `DELETE FROM sessions WHERE user_id = $1`
+
+	res, err := tx.ExecContext(ctx, query, userID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (r *authRepository) DeleteSession(ctx context.Context, userID uuid.UUID) error {
+	return r.deleteSession(ctx, r.db, userID)
 }

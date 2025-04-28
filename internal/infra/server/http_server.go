@@ -78,6 +78,7 @@ func (s *httpServer) MountRoutes(db *sqlx.DB, rds *redis.Client) {
 	mailer := mail.NewMailDialer()
 	uuidInstance := uuidpkg.GetUUID()
 	validatorInstance := validator.NewValidator()
+	middlewareInstance := middleware.NewMiddleware(jwtAccess)
 
 	s.app.Get("/", func(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusOK).SendString("Astungkara Healthy")
@@ -92,5 +93,5 @@ func (s *httpServer) MountRoutes(db *sqlx.DB, rds *redis.Client) {
 	userService := usersvc.NewUserService(userRepository, bcryptInstance, uuidInstance)
 	authService := authsvc.NewAuthService(authRepository, userService, bcryptInstance, jwtAccess, mailer, uuidInstance)
 
-	handler.InitAuthHandler(v1, validatorInstance, authService)
+	handler.InitAuthHandler(v1, middlewareInstance, validatorInstance, authService)
 }

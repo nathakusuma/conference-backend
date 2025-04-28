@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/google/uuid"
 	"github.com/nathakusuma/astungkara/domain/contract"
 	"github.com/nathakusuma/astungkara/domain/dto"
 	"github.com/nathakusuma/astungkara/domain/entity"
@@ -352,4 +353,28 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (dt
 	}, "[AuthService][RefreshToken] token refreshed")
 
 	return resp, nil
+}
+
+func (s *authService) Logout(ctx context.Context) error {
+	userID := ctx.Value("user.id").(uuid.UUID)
+
+	err := s.repo.DeleteSession(ctx, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errorpkg.ErrInvalidBearerToken
+		}
+
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error":  err.Error(),
+			"userID": userID,
+		}, "[AuthService][Logout] failed to delete session")
+
+		return errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	log.Info(map[string]interface{}{
+		"user.id": userID,
+	}, "[AuthService][Logout] user logged out")
+
+	return nil
 }

@@ -102,7 +102,7 @@ func Test_AuthService_RequestOTPRegisterUser(t *testing.T) {
 
 		err := svc.RequestOTPRegisterUser(ctx, email)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 
 	t.Run("error - set OTP fails", func(t *testing.T) {
@@ -118,7 +118,7 @@ func Test_AuthService_RequestOTPRegisterUser(t *testing.T) {
 
 		err := svc.RequestOTPRegisterUser(ctx, email)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 }
 
@@ -158,7 +158,7 @@ func Test_AuthService_CheckOTPRegisterUser(t *testing.T) {
 
 		err := svc.CheckOTPRegisterUser(ctx, email, otp)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 
 	t.Run("error - invalid OTP", func(t *testing.T) {
@@ -222,7 +222,7 @@ func Test_AuthService_LoginUser(t *testing.T) {
 		resp, err := svc.LoginUser(ctx, req)
 		assert.Empty(t, resp)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 
 	t.Run("error - invalid credentials", func(t *testing.T) {
@@ -277,7 +277,7 @@ func Test_AuthService_LoginUser(t *testing.T) {
 		resp, err := svc.LoginUser(ctx, req)
 		assert.Empty(t, resp)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 
 	t.Run("error - create session fails", func(t *testing.T) {
@@ -312,7 +312,7 @@ func Test_AuthService_LoginUser(t *testing.T) {
 		resp, err := svc.LoginUser(ctx, req)
 		assert.Empty(t, resp)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), errorpkg.ErrInternalServer.Error())
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 }
 

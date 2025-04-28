@@ -63,12 +63,12 @@ components:
           type: string
           format: date-time
           examples:
-            - "2025-01-20T25:05:41.282989Z"
+            - "2025-01-25T20:05:41.282989Z"
         updated_at:
           type: string
           format: date-time
           examples:
-            - "2025-01-20T25:05:41.282989Z"
+            - "2025-01-25T20:05:41.282989Z"
 
     ErrorResponse:
       type: object
@@ -104,7 +104,7 @@ components:
               access_token:
                 type: string
                 examples:
-                  - "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  - "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
               refresh_token:
                 type: string
                 examples:
@@ -122,6 +122,16 @@ components:
             message: "Something went wrong in our server. Please try again later."
             error_code: "INTERNAL_SERVER_ERROR"
             trace_id: "652e0a03-1c0a-404a-ac47-685d7ecb22d8"
+
+    FailParseRequest:
+      description: Failed to parse request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "Failed to parse request. Please check your request format."
+            error_code: "FAIL_PARSE_REQUEST"
 
 paths:
   /auth/register/otp:
@@ -143,14 +153,7 @@ paths:
         '204':
           description: Success - OTP sent successfully
         '400':
-          description: Failed to parse request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "Failed to parse request. Please check your request format."
-                error_code: "FAIL_PARSE_REQUEST"
+          $ref: '#/components/responses/FailParseRequest'
         '422':
           description: Validation error
           content:
@@ -189,6 +192,8 @@ paths:
       responses:
         '204':
           description: Success - OTP verification successful
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
         '401':
           description: Invalid OTP
           content:
@@ -249,6 +254,8 @@ paths:
         '201':
           description: Success
           $ref: '#/components/responses/LoginSuccess'
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
         '401':
           description: Invalid OTP
           content:
@@ -309,6 +316,8 @@ paths:
         '200':
           description: Success
           $ref: '#/components/responses/LoginSuccess'
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
         '401':
           description: Credentials Not Match
           content:
@@ -344,6 +353,55 @@ paths:
                       tag: "required"
                       param: ""
                       translation: "Password is a required field"
+                error_code: "VALIDATION_ERROR"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/refresh:
+    post:
+      summary: Refresh Access Token
+      operationId: refreshAccessToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+                  examples:
+                    - "8up9Ltl48d1EtzpffHGScCJTpyNGcyPq"
+      responses:
+        '200':
+          description: Success
+          $ref: '#/components/responses/LoginSuccess'
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
+        '401':
+          description: Invalid Refresh Token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "Session is invalid. Please login again."
+                error_code: "INVALID_REFRESH_TOKEN"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "There are invalid fields in your request. Please check and try again"
+                detail:
+                  - refresh_token:
+                      tag: "required"
+                      param: ""
+                      translation: "RefreshToken is a required field"
                 error_code: "VALIDATION_ERROR"
         '500':
           $ref: '#/components/responses/InternalServerError'

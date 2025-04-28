@@ -316,6 +316,142 @@ func Test_AuthService_LoginUser(t *testing.T) {
 	})
 }
 
+func Test_AuthService_RegisterUser(t *testing.T) {
+	ctx := context.Background()
+	req := dto.RegisterUserRequest{
+		Email:    "test@example.com",
+		OTP:      "123456",
+		Name:     "Test User",
+		Password: "password123",
+	}
+
+	t.Run("success", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		// Setup expectations
+		mocks.authRepo.EXPECT().
+			GetUserRegisterOTP(ctx, req.Email).
+			Return(req.OTP, nil)
+
+		mocks.authRepo.EXPECT().
+			DeleteUserRegisterOTP(ctx, req.Email).
+			Return(nil)
+
+		hashedPassword := "hashed_password"
+		mocks.bcrypt.EXPECT().
+			Hash(req.Password).
+			Return(hashedPassword, nil)
+
+		userID := uuid.New()
+		mocks.userSvc.EXPECT().
+			CreateUser(ctx, mock.MatchedBy(func(createReq *dto.CreateUserRequest) bool {
+				return createReq.Email == req.Email &&
+					createReq.Name == req.Name &&
+					createReq.PasswordHash == hashedPassword &&
+					createReq.Role == enum.RoleUser
+			})).
+			Return(userID, nil)
+
+		// Mock login expectations
+		mockLoginExpectations(mocks, ctx, req.Email, req.Password, userID)
+
+		resp, err := svc.RegisterUser(ctx, req)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, resp.AccessToken)
+		assert.NotEmpty(t, resp.RefreshToken)
+		assert.NotNil(t, resp.User)
+	})
+
+	t.Run("error - invalid OTP", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserRegisterOTP(ctx, req.Email).
+			Return("different-otp", nil)
+
+		resp, err := svc.RegisterUser(ctx, req)
+		assert.Empty(t, resp)
+		assert.ErrorIs(t, err, errorpkg.ErrInvalidOTP)
+	})
+
+	t.Run("error - get OTP fails", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserRegisterOTP(ctx, req.Email).
+			Return("", errors.New("redis error"))
+
+		resp, err := svc.RegisterUser(ctx, req)
+		assert.Empty(t, resp)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+
+	t.Run("error - delete OTP fails", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserRegisterOTP(ctx, req.Email).
+			Return(req.OTP, nil)
+
+		mocks.authRepo.EXPECT().
+			DeleteUserRegisterOTP(ctx, req.Email).
+			Return(errors.New("redis error"))
+
+		resp, err := svc.RegisterUser(ctx, req)
+		assert.Empty(t, resp)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+
+	t.Run("error - password hash fails", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserRegisterOTP(ctx, req.Email).
+			Return(req.OTP, nil)
+
+		mocks.authRepo.EXPECT().
+			DeleteUserRegisterOTP(ctx, req.Email).
+			Return(nil)
+
+		mocks.bcrypt.EXPECT().
+			Hash(req.Password).
+			Return("", errors.New("bcrypt error"))
+
+		resp, err := svc.RegisterUser(ctx, req)
+		assert.Empty(t, resp)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+
+	t.Run("error - create user fails", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetUserRegisterOTP(ctx, req.Email).
+			Return(req.OTP, nil)
+
+		mocks.authRepo.EXPECT().
+			DeleteUserRegisterOTP(ctx, req.Email).
+			Return(nil)
+
+		hashedPassword := "hashed_password"
+		mocks.bcrypt.EXPECT().
+			Hash(req.Password).
+			Return(hashedPassword, nil)
+
+		mocks.userSvc.EXPECT().
+			CreateUser(ctx, mock.Anything).
+			Return(uuid.UUID{}, errors.New("db error"))
+
+		resp, err := svc.RegisterUser(ctx, req)
+		assert.Empty(t, resp)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+}
+
 // Helper function to set up common login expectations
 func mockLoginExpectations(mocks *authServiceMocks, ctx context.Context, email, password string, userID uuid.UUID) {
 	passwordHash := "hashed_password"

@@ -29,6 +29,10 @@ func (r *authRepository) GetUserRegisterOTP(ctx context.Context, email string) (
 	return r.rds.Get(ctx, "auth:"+email+":otp").Result()
 }
 
+func (r *authRepository) DeleteUserRegisterOTP(ctx context.Context, email string) error {
+	return nil
+}
+
 func (r *authRepository) CreateSession(ctx context.Context, session *entity.Session) error {
 	return r.createSession(ctx, r.db, session)
 }

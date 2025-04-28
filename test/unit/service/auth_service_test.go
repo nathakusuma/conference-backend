@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"github.com/google/uuid"
 	"github.com/nathakusuma/astungkara/domain/contract"
@@ -206,7 +205,7 @@ func Test_AuthService_LoginUser(t *testing.T) {
 
 		mocks.userSvc.EXPECT().
 			GetUserByEmail(ctx, req.Email).
-			Return(nil, sql.ErrNoRows)
+			Return(nil, errorpkg.ErrNotFound)
 
 		resp, err := svc.LoginUser(ctx, req)
 		assert.Empty(t, resp)

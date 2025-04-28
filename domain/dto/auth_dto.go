@@ -26,3 +26,7 @@ type LoginResponse struct {
 	RefreshToken string        `json:"refresh_token"`
 	User         *UserResponse `json:"user"`
 }
+
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token" validate:"required"`
+}

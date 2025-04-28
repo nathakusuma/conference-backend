@@ -30,6 +30,7 @@ func InitAuthHandler(
 	authGroup.Post("/register/otp/check", handler.checkOTPRegisterUser())
 	authGroup.Post("/register", handler.registerUser())
 	authGroup.Post("/login", handler.loginUser())
+	authGroup.Post("/refresh", handler.refreshToken())
 }
 
 func (c *authHandler) requestOTPRegisterUser() fiber.Handler {
@@ -104,6 +105,26 @@ func (c *authHandler) loginUser() fiber.Handler {
 		}
 
 		resp, err := c.svc.LoginUser(ctx.Context(), req)
+		if err != nil {
+			return err
+		}
+
+		return ctx.Status(http.StatusOK).JSON(resp)
+	}
+}
+
+func (c *authHandler) refreshToken() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		var req dto.RefreshTokenRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return errorpkg.ErrFailParseRequest
+		}
+
+		if err := c.val.ValidateStruct(req); err != nil {
+			return err
+		}
+
+		resp, err := c.svc.RefreshToken(ctx.Context(), req.RefreshToken)
 		if err != nil {
 			return err
 		}

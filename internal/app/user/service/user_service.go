@@ -107,3 +107,7 @@ func (s *userService) getUserByField(ctx context.Context, field, value string) (
 func (s *userService) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	return s.getUserByField(ctx, "email", email)
 }
+
+func (s *userService) GetUserByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+	return s.getUserByField(ctx, "id", id.String())
+}

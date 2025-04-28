@@ -42,8 +42,8 @@ func (s *userService) CreateUser(ctx context.Context, req *dto.CreateUserRequest
 	userID, err := s.uuid.NewV7()
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"req":   loggableReq,
+			"error":   err.Error(),
+			"request": loggableReq,
 		}, "[UserService][CreateUser] Failed to generate user ID")
 
 		return uuid.Nil, errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -52,8 +52,8 @@ func (s *userService) CreateUser(ctx context.Context, req *dto.CreateUserRequest
 	passwordHash, err := s.bcrypt.Hash(req.Password)
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"req":   loggableReq,
+			"error":   err.Error(),
+			"request": loggableReq,
 		}, "[UserService][CreateUser] Failed to hash password")
 
 		return uuid.Nil, errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -78,8 +78,8 @@ func (s *userService) CreateUser(ctx context.Context, req *dto.CreateUserRequest
 
 		// other error
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"req":   loggableReq,
+			"error":   err.Error(),
+			"request": loggableReq,
 		}, "[UserService][CreateUser] Failed to create user")
 
 		return uuid.Nil, errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -133,8 +133,8 @@ func (s *userService) UpdatePassword(ctx context.Context, email, newPassword str
 	newPasswordHash, err := s.bcrypt.Hash(newPassword)
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"email": email,
+			"error":      err.Error(),
+			"user.email": email,
 		}, "[UserService][UpdatePassword] Failed to hash password")
 
 		return errorpkg.ErrInternalServer.WithTraceID(traceID)
@@ -145,15 +145,15 @@ func (s *userService) UpdatePassword(ctx context.Context, email, newPassword str
 	err = s.userRepo.UpdateUser(ctx, user)
 	if err != nil {
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error": err.Error(),
-			"email": email,
+			"error":      err.Error(),
+			"user.email": email,
 		}, "[UserService][UpdatePassword] Failed to update user password")
 
 		return errorpkg.ErrInternalServer.WithTraceID(traceID)
 	}
 
 	log.Info(map[string]interface{}{
-		"email": email,
+		"user.email": email,
 	}, "[UserService][UpdatePassword] Password updated")
 
 	return nil

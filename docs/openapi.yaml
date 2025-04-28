@@ -224,6 +224,15 @@ paths:
               example:
                 message: "Credentials do not match. Please try again."
                 error_code: "CREDENTIALS_NOT_MATCH"
+        '404':
+          description: User Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "User not found. Please register first."
+                error_code: "NOT_FOUND"
         '422':
           description: Validation Error
           content:

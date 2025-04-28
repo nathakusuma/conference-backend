@@ -80,6 +80,30 @@ func Test_UserService_CreateUser(t *testing.T) {
 		assert.Equal(t, userID, resultID)
 	})
 
+	t.Run("error - password hashing fails", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		req := &dto.CreateUserRequest{
+			Name:     "Test User",
+			Email:    "test@example.com",
+			Password: hashedPassword,
+		}
+
+		// Expect UUID generation
+		mocks.uuid.EXPECT().
+			NewV7().
+			Return(userID, nil)
+
+		// Expect password hashing to fail
+		mocks.bcrypt.EXPECT().
+			Hash(req.Password).
+			Return("", errors.New("hashing error"))
+
+		resultID, err := svc.CreateUser(ctx, req)
+		assert.Equal(t, uuid.Nil, resultID)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+
 	t.Run("error - uuid generation fails", func(t *testing.T) {
 		svc, mocks := setupUserServiceTest(t)
 

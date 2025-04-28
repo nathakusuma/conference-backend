@@ -34,6 +34,8 @@ func InitAuthHandler(
 	authGroup.Post("/login", handler.loginUser())
 	authGroup.Post("/refresh", handler.refreshToken())
 	authGroup.Post("/logout", middlewareInstance.RequireAuthenticated(), handler.logout())
+	authGroup.Post("/reset-password/otp", handler.requestOTPResetPassword())
+	authGroup.Post("/reset-password", handler.resetPassword())
 }
 
 func (c *authHandler) requestOTPRegisterUser() fiber.Handler {
@@ -144,5 +146,45 @@ func (c *authHandler) logout() fiber.Handler {
 		}
 
 		return ctx.SendStatus(http.StatusNoContent)
+	}
+}
+
+func (c *authHandler) requestOTPResetPassword() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		var req dto.RequestOTPResetPasswordRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return errorpkg.ErrFailParseRequest
+		}
+
+		if err := c.val.ValidateStruct(req); err != nil {
+			return err
+		}
+
+		err := c.svc.RequestOTPResetPassword(ctx.Context(), req.Email)
+		if err != nil {
+			return err
+		}
+
+		return ctx.SendStatus(http.StatusNoContent)
+	}
+}
+
+func (c *authHandler) resetPassword() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		var req dto.ResetPasswordRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return errorpkg.ErrFailParseRequest
+		}
+
+		if err := c.val.ValidateStruct(req); err != nil {
+			return err
+		}
+
+		resp, err := c.svc.ResetPassword(ctx.Context(), req)
+		if err != nil {
+			return err
+		}
+
+		return ctx.Status(http.StatusOK).JSON(resp)
 	}
 }

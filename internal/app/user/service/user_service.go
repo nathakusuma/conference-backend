@@ -121,3 +121,40 @@ func (s *userService) GetUserByEmail(ctx context.Context, email string) (*entity
 func (s *userService) GetUserByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
 	return s.getUserByField(ctx, "id", id.String())
 }
+
+func (s *userService) UpdatePassword(ctx context.Context, email, newPassword string) error {
+	// get user by email
+	user, err := s.GetUserByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+
+	// hash new password
+	newPasswordHash, err := s.bcrypt.Hash(newPassword)
+	if err != nil {
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+			"email": email,
+		}, "[UserService][UpdatePassword] Failed to hash password")
+
+		return errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	// update user password
+	user.PasswordHash = newPasswordHash
+	err = s.userRepo.UpdateUser(ctx, user)
+	if err != nil {
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+			"email": email,
+		}, "[UserService][UpdatePassword] Failed to update user password")
+
+		return errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	log.Info(map[string]interface{}{
+		"email": email,
+	}, "[UserService][UpdatePassword] Password updated")
+
+	return nil
+}

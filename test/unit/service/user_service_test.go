@@ -210,3 +210,54 @@ func Test_UserService_GetUserByEmail(t *testing.T) {
 		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 }
+
+func Test_UserService_GetUserByID(t *testing.T) {
+	ctx := context.Background()
+	id := uuid.New()
+
+	t.Run("success", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		expectedUser := &entity.User{
+			ID:        id,
+			Name:      "Test User",
+			Email:     "test@example.com",
+			Role:      enum.RoleUser,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+
+		mocks.userRepo.EXPECT().
+			GetUserByField(ctx, "id", id.String()).
+			Return(expectedUser, nil)
+
+		user, err := svc.GetUserByID(ctx, id)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedUser, user)
+	})
+
+	t.Run("error - user not found", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		mocks.userRepo.EXPECT().
+			GetUserByField(ctx, "id", id.String()).
+			Return(nil, sql.ErrNoRows)
+
+		user, err := svc.GetUserByID(ctx, id)
+		assert.Nil(t, user)
+		assert.ErrorIs(t, err, errorpkg.ErrNotFound)
+	})
+
+	t.Run("error - repository error", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		mocks.userRepo.EXPECT().
+			GetUserByField(ctx, "id", id.String()).
+			Return(nil, errors.New("db error"))
+
+		user, err := svc.GetUserByID(ctx, id)
+		assert.Nil(t, user)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+}

@@ -10,6 +10,12 @@ servers:
     description: Local development server
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     # Common request/response fields
     EmailField:
@@ -112,6 +118,44 @@ components:
               user:
                 $ref: '#/components/schemas/User'
 
+    AuthenticationError:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            noBearerToken:
+              summary: No Bearer Token
+              value:
+                message: "You're not logged in. Please login first."
+                error_code: "NO_BEARER_TOKEN"
+            invalidBearerToken:
+              summary: Invalid Bearer Token
+              value:
+                message: "Your session is invalid. Please renew your session."
+                error_code: "INVALID_BEARER_TOKEN"
+
+    InvalidRefreshToken:
+      description: Invalid refresh token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "Session is invalid. Please login again."
+            error_code: "INVALID_REFRESH_TOKEN"
+
+    ForbiddenRole:
+      description: User role not authorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "You're not allowed to access this resource."
+            error_code: "FORBIDDEN_ROLE"
+
     InternalServerError:
       description: Internal server error
       content:
@@ -133,9 +177,15 @@ components:
             message: "Failed to parse request. Please check your request format."
             error_code: "FAIL_PARSE_REQUEST"
 
+tags:
+  - name: Auth
+    description: Authentication and authorization operations
+
 paths:
   /auth/register/otp:
     post:
+      tags:
+        - Auth
       summary: Request OTP Register User
       operationId: requestOTPRegisterUser
       requestBody:
@@ -173,6 +223,8 @@ paths:
 
   /auth/register/otp/check:
     post:
+      tags:
+        - Auth
       summary: Check OTP Register User
       operationId: checkOTPRegisterUser
       requestBody:
@@ -226,6 +278,8 @@ paths:
 
   /auth/register:
     post:
+      tags:
+        - Auth
       summary: Register User
       operationId: registerUser
       requestBody:
@@ -296,6 +350,8 @@ paths:
 
   /auth/login:
     post:
+      tags:
+        - Auth
       summary: Login User
       operationId: loginUser
       requestBody:
@@ -359,6 +415,8 @@ paths:
 
   /auth/refresh:
     post:
+      tags:
+        - Auth
       summary: Refresh Access Token
       operationId: refreshAccessToken
       requestBody:
@@ -381,14 +439,7 @@ paths:
         '400':
           $ref: '#/components/responses/FailParseRequest'
         '401':
-          description: Invalid Refresh Token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "Session is invalid. Please login again."
-                error_code: "INVALID_REFRESH_TOKEN"
+          $ref: '#/components/responses/InvalidRefreshToken'
         '422':
           description: Validation error
           content:
@@ -403,5 +454,21 @@ paths:
                       param: ""
                       translation: "RefreshToken is a required field"
                 error_code: "VALIDATION_ERROR"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Logout User
+      operationId: logoutUser
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '204':
+          description: Success - User logged out successfully
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
         '500':
           $ref: '#/components/responses/InternalServerError'

@@ -15,8 +15,7 @@ type IJwt interface {
 
 type Claims struct {
 	jwt.RegisteredClaims
-	UserID uuid.UUID     `json:"user_id"`
-	Role   enum.UserRole `json:"role"`
+	Role enum.UserRole `json:"role"`
 }
 
 type JwtStruct struct {

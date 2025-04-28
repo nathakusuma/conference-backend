@@ -128,6 +128,63 @@ func (_c *MockIAuthService_LoginUser_Call) RunAndReturn(run func(context.Context
 	return _c
 }
 
+// RefreshToken provides a mock function with given fields: ctx, refreshToken
+func (_m *MockIAuthService) RefreshToken(ctx context.Context, refreshToken string) (dto.LoginResponse, error) {
+	ret := _m.Called(ctx, refreshToken)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RefreshToken")
+	}
+
+	var r0 dto.LoginResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (dto.LoginResponse, error)); ok {
+		return rf(ctx, refreshToken)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) dto.LoginResponse); ok {
+		r0 = rf(ctx, refreshToken)
+	} else {
+		r0 = ret.Get(0).(dto.LoginResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, refreshToken)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockIAuthService_RefreshToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RefreshToken'
+type MockIAuthService_RefreshToken_Call struct {
+	*mock.Call
+}
+
+// RefreshToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - refreshToken string
+func (_e *MockIAuthService_Expecter) RefreshToken(ctx interface{}, refreshToken interface{}) *MockIAuthService_RefreshToken_Call {
+	return &MockIAuthService_RefreshToken_Call{Call: _e.mock.On("RefreshToken", ctx, refreshToken)}
+}
+
+func (_c *MockIAuthService_RefreshToken_Call) Run(run func(ctx context.Context, refreshToken string)) *MockIAuthService_RefreshToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockIAuthService_RefreshToken_Call) Return(_a0 dto.LoginResponse, _a1 error) *MockIAuthService_RefreshToken_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockIAuthService_RefreshToken_Call) RunAndReturn(run func(context.Context, string) (dto.LoginResponse, error)) *MockIAuthService_RefreshToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RegisterUser provides a mock function with given fields: ctx, req
 func (_m *MockIAuthService) RegisterUser(ctx context.Context, req dto.RegisterUserRequest) (dto.LoginResponse, error) {
 	ret := _m.Called(ctx, req)

@@ -145,6 +145,65 @@ func (_c *MockIUserService_GetUserByEmail_Call) RunAndReturn(run func(context.Co
 	return _c
 }
 
+// GetUserByID provides a mock function with given fields: ctx, id
+func (_m *MockIUserService) GetUserByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserByID")
+	}
+
+	var r0 *entity.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*entity.User, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *entity.User); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockIUserService_GetUserByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserByID'
+type MockIUserService_GetUserByID_Call struct {
+	*mock.Call
+}
+
+// GetUserByID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+func (_e *MockIUserService_Expecter) GetUserByID(ctx interface{}, id interface{}) *MockIUserService_GetUserByID_Call {
+	return &MockIUserService_GetUserByID_Call{Call: _e.mock.On("GetUserByID", ctx, id)}
+}
+
+func (_c *MockIUserService_GetUserByID_Call) Run(run func(ctx context.Context, id uuid.UUID)) *MockIUserService_GetUserByID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockIUserService_GetUserByID_Call) Return(_a0 *entity.User, _a1 error) *MockIUserService_GetUserByID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockIUserService_GetUserByID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (*entity.User, error)) *MockIUserService_GetUserByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockIUserService creates a new instance of MockIUserService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockIUserService(t interface {

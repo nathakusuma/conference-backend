@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"github.com/google/uuid"
 	"github.com/nathakusuma/astungkara/domain/contract"
@@ -531,4 +532,179 @@ func mockLoginExpectations(mocks *authServiceMocks, ctx context.Context, email, 
 				!session.ExpiresAt.IsZero() // Check expiration is set
 		})).
 		Return(nil)
+}
+
+func Test_AuthService_RefreshToken(t *testing.T) {
+	ctx := context.Background()
+	refreshToken := "valid_refresh_token"
+	userID := uuid.New()
+
+	t.Run("success", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		// Setup session
+		session := &entity.Session{
+			Token:     refreshToken,
+			UserID:    userID,
+			ExpiresAt: time.Now().Add(time.Hour), // Valid future expiration
+		}
+
+		// Setup user
+		user := &entity.User{
+			ID:        userID,
+			Email:     "test@example.com",
+			Name:      "Test User",
+			Role:      enum.RoleUser,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+
+		// Set up expectations
+		mocks.authRepo.EXPECT().
+			GetSessionByToken(ctx, refreshToken).
+			Return(session, nil)
+
+		mocks.userSvc.EXPECT().
+			GetUserByID(ctx, userID).
+			Return(user, nil)
+
+		mocks.jwt.EXPECT().
+			Create(user.ID, user.Role).
+			Return("new_access_token", nil)
+
+		// Execute and verify
+		resp, err := svc.RefreshToken(ctx, refreshToken)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, resp.AccessToken)
+		assert.Equal(t, refreshToken, resp.RefreshToken)
+		assert.NotNil(t, resp.User)
+		assert.Equal(t, user.ID, resp.User.ID)
+		assert.Equal(t, user.Email, resp.User.Email)
+		assert.Equal(t, user.Role, resp.User.Role)
+	})
+
+	t.Run("error - session not found", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetSessionByToken(ctx, refreshToken).
+			Return(nil, sql.ErrNoRows)
+
+		resp, err := svc.RefreshToken(ctx, refreshToken)
+		assert.Empty(t, resp)
+		assert.ErrorIs(t, err, errorpkg.ErrInvalidRefreshToken)
+	})
+
+	t.Run("error - get session unexpected error", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			GetSessionByToken(ctx, refreshToken).
+			Return(nil, errors.New("db error"))
+
+		resp, err := svc.RefreshToken(ctx, refreshToken)
+		assert.Empty(t, resp)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+
+	t.Run("error - expired session", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		// Setup expired session
+		session := &entity.Session{
+			Token:     refreshToken,
+			UserID:    userID,
+			ExpiresAt: time.Now().Add(-time.Hour), // Expired
+		}
+
+		mocks.authRepo.EXPECT().
+			GetSessionByToken(ctx, refreshToken).
+			Return(session, nil)
+
+		resp, err := svc.RefreshToken(ctx, refreshToken)
+		assert.Empty(t, resp)
+		assert.ErrorIs(t, err, errorpkg.ErrInvalidRefreshToken)
+	})
+
+	t.Run("error - user not found", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		// Setup valid session
+		session := &entity.Session{
+			Token:     refreshToken,
+			UserID:    userID,
+			ExpiresAt: time.Now().Add(time.Hour),
+		}
+
+		mocks.authRepo.EXPECT().
+			GetSessionByToken(ctx, refreshToken).
+			Return(session, nil)
+
+		mocks.userSvc.EXPECT().
+			GetUserByID(ctx, userID).
+			Return(nil, errorpkg.ErrNotFound)
+
+		resp, err := svc.RefreshToken(ctx, refreshToken)
+		assert.Empty(t, resp)
+		assert.ErrorIs(t, err, errorpkg.ErrNotFound)
+	})
+
+	t.Run("error - get user unexpected error", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		// Setup valid session
+		session := &entity.Session{
+			Token:     refreshToken,
+			UserID:    userID,
+			ExpiresAt: time.Now().Add(time.Hour),
+		}
+
+		mocks.authRepo.EXPECT().
+			GetSessionByToken(ctx, refreshToken).
+			Return(session, nil)
+
+		mocks.userSvc.EXPECT().
+			GetUserByID(ctx, userID).
+			Return(nil, errors.New("db error"))
+
+		resp, err := svc.RefreshToken(ctx, refreshToken)
+		assert.Empty(t, resp)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+
+	t.Run("error - jwt creation fails", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		// Setup valid session
+		session := &entity.Session{
+			Token:     refreshToken,
+			UserID:    userID,
+			ExpiresAt: time.Now().Add(time.Hour),
+		}
+
+		// Setup user
+		user := &entity.User{
+			ID:   userID,
+			Role: enum.RoleUser,
+		}
+
+		mocks.authRepo.EXPECT().
+			GetSessionByToken(ctx, refreshToken).
+			Return(session, nil)
+
+		mocks.userSvc.EXPECT().
+			GetUserByID(ctx, userID).
+			Return(user, nil)
+
+		mocks.jwt.EXPECT().
+			Create(user.ID, user.Role).
+			Return("", errors.New("jwt error"))
+
+		resp, err := svc.RefreshToken(ctx, refreshToken)
+		assert.Empty(t, resp)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
 }

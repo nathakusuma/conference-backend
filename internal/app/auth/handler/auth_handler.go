@@ -28,6 +28,7 @@ func InitAuthHandler(
 	authGroup := router.Group("/auth")
 	authGroup.Post("/register/otp", handler.requestOTPRegisterUser())
 	authGroup.Post("/register/otp/check", handler.checkOTPRegisterUser())
+	authGroup.Post("/register", handler.registerUser())
 	authGroup.Post("/login", handler.loginUser())
 }
 
@@ -68,6 +69,26 @@ func (c *authHandler) checkOTPRegisterUser() fiber.Handler {
 		}
 
 		return ctx.SendStatus(http.StatusNoContent)
+	}
+}
+
+func (c *authHandler) registerUser() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		var req dto.RegisterUserRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return errorpkg.ErrFailParseRequest
+		}
+
+		if err := c.val.ValidateStruct(req); err != nil {
+			return err
+		}
+
+		resp, err := c.svc.RegisterUser(ctx.Context(), req)
+		if err != nil {
+			return err
+		}
+
+		return ctx.Status(http.StatusCreated).JSON(resp)
 	}
 }
 

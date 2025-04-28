@@ -6,6 +6,7 @@ import (
 	"github.com/nathakusuma/astungkara/domain/contract"
 	"github.com/nathakusuma/astungkara/domain/dto"
 	"github.com/nathakusuma/astungkara/domain/entity"
+	"github.com/nathakusuma/astungkara/domain/enum"
 	"github.com/nathakusuma/astungkara/domain/errorpkg"
 	"github.com/nathakusuma/astungkara/internal/infra/env"
 	"github.com/nathakusuma/astungkara/pkg/bcrypt"
@@ -123,7 +124,78 @@ func (s *authService) CheckOTPRegisterUser(ctx context.Context, email, otp strin
 func (s *authService) RegisterUser(ctx context.Context,
 	req dto.RegisterUserRequest) (dto.LoginResponse, error) {
 
-	return dto.LoginResponse{}, nil
+	var resp dto.LoginResponse
+
+	// req without Password and OTP
+	loggableReq := req
+	loggableReq.Password = ""
+	loggableReq.OTP = ""
+
+	// get otp
+	savedOtp, err := s.repo.GetUserRegisterOTP(ctx, req.Email)
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return resp, errorpkg.ErrInvalidOTP
+		}
+
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+			"req":   loggableReq,
+		}, "[AuthService][RegisterUser] failed to get otp")
+
+		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	if savedOtp != req.OTP {
+		return resp, errorpkg.ErrInvalidOTP
+	}
+
+	// delete otp
+	err = s.repo.DeleteUserRegisterOTP(ctx, req.Email)
+	if err != nil {
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+			"req":   loggableReq,
+		}, "[AuthService][RegisterUser] failed to delete otp")
+
+		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	passwordHash, err := s.bcrypt.Hash(req.Password)
+	if err != nil {
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+			"req":   loggableReq,
+		}, "[AuthService][RegisterUser] failed to hash password")
+
+		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	// save user
+	_, err = s.userSvc.CreateUser(ctx, &dto.CreateUserRequest{
+		Name:         req.Name,
+		Email:        req.Email,
+		PasswordHash: passwordHash,
+		Role:         enum.RoleUser,
+	})
+	if err != nil {
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+			"req":   loggableReq,
+		}, "[AuthService][RegisterUser] failed to create user")
+
+		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	log.Info(map[string]interface{}{
+		"email": req.Email,
+	}, "[AuthService][RegisterUser] user registered")
+
+	// login user
+	return s.LoginUser(ctx, dto.LoginUserRequest{
+		Email:    req.Email,
+		Password: req.Password,
+	})
 }
 
 func (s *authService) LoginUser(ctx context.Context,

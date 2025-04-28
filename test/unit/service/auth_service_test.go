@@ -708,3 +708,42 @@ func Test_AuthService_RefreshToken(t *testing.T) {
 		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 }
+
+func Test_AuthService_Logout(t *testing.T) {
+	userID := uuid.New()
+	ctx := context.WithValue(context.Background(), "user.id", userID)
+
+	t.Run("success", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			DeleteSession(ctx, userID).
+			Return(nil)
+
+		err := svc.Logout(ctx)
+		assert.NoError(t, err)
+	})
+
+	t.Run("error - session not found", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			DeleteSession(ctx, userID).
+			Return(sql.ErrNoRows)
+
+		err := svc.Logout(ctx)
+		assert.ErrorIs(t, err, errorpkg.ErrInvalidBearerToken)
+	})
+
+	t.Run("error - delete session fails", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		mocks.authRepo.EXPECT().
+			DeleteSession(ctx, userID).
+			Return(errors.New("db error"))
+
+		err := svc.Logout(ctx)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+}

@@ -2,6 +2,7 @@ package contract
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"github.com/nathakusuma/astungkara/domain/dto"
 	"github.com/nathakusuma/astungkara/domain/entity"
 )
@@ -13,6 +14,7 @@ type IAuthRepository interface {
 
 	CreateSession(ctx context.Context, session *entity.Session) error
 	GetSessionByToken(ctx context.Context, token string) (*entity.Session, error)
+	DeleteSession(ctx context.Context, userID uuid.UUID) error
 }
 
 type IAuthService interface {
@@ -22,4 +24,5 @@ type IAuthService interface {
 	LoginUser(ctx context.Context, req dto.LoginUserRequest) (dto.LoginResponse, error)
 
 	RefreshToken(ctx context.Context, refreshToken string) (dto.LoginResponse, error)
+	Logout(ctx context.Context) error
 }

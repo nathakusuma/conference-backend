@@ -36,7 +36,7 @@ func NewUserService(
 
 func (s *userService) CreateUser(ctx context.Context, req *dto.CreateUserRequest) (uuid.UUID, error) {
 	loggableReq := *req
-	loggableReq.PasswordHash = ""
+	loggableReq.Password = ""
 
 	// generate user ID
 	userID, err := s.uuid.NewV7()
@@ -49,12 +49,22 @@ func (s *userService) CreateUser(ctx context.Context, req *dto.CreateUserRequest
 		return uuid.Nil, errorpkg.ErrInternalServer.WithTraceID(traceID)
 	}
 
+	passwordHash, err := s.bcrypt.Hash(req.Password)
+	if err != nil {
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+			"req":   loggableReq,
+		}, "[UserService][CreateUser] Failed to hash password")
+
+		return uuid.Nil, errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
 	// create user data
 	user := &entity.User{
 		ID:           userID,
 		Name:         req.Name,
 		Email:        req.Email,
-		PasswordHash: req.PasswordHash,
+		PasswordHash: passwordHash,
 		Role:         req.Role,
 	}
 
@@ -88,7 +98,7 @@ func (s *userService) getUserByField(ctx context.Context, field, value string) (
 	if err != nil {
 		// if user not found
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errorpkg.ErrNotFound
+			return nil, errorpkg.ErrNotFound.WithMessage("User not found.")
 		}
 
 		// other error

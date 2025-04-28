@@ -67,7 +67,7 @@ func Test_AuthService_RequestOTPRegisterUser(t *testing.T) {
 		mocks.mailer.EXPECT().
 			Send(
 				email,
-				"[Class Manager] Verify Your Account",
+				"[Astungkara] Verify Your Account",
 				"otp_register_user.html",
 				mock.AnythingOfType("map[string]interface {}"),
 			).RunAndReturn(func(_, _, _ string, _ map[string]interface{}) error {
@@ -100,7 +100,7 @@ func Test_AuthService_RequestOTPRegisterUser(t *testing.T) {
 		mocks.mailer.EXPECT().
 			Send(
 				email,
-				"[Class Manager] Verify Your Account",
+				"[Astungkara] Verify Your Account",
 				"otp_register_user.html",
 				mock.AnythingOfType("map[string]interface {}"),
 			).RunAndReturn(func(_, _, _ string, _ map[string]interface{}) error {
@@ -294,6 +294,7 @@ func Test_AuthService_LoginUser(t *testing.T) {
 			Role:         enum.RoleUser,
 		}
 
+		// Setup expectations
 		mocks.userSvc.EXPECT().
 			GetUserByEmail(ctx, req.Email).
 			Return(user, nil)
@@ -302,13 +303,21 @@ func Test_AuthService_LoginUser(t *testing.T) {
 			Compare(req.Password, passwordHash).
 			Return(true)
 
+		// JWT creation will fail
 		mocks.jwt.EXPECT().
 			Create(user.ID, user.Role).
 			Return("", errors.New("jwt error"))
 
+		// Expect CreateSession to be called but we don't care about the result
+		// since the JWT error should be returned first
 		mocks.authRepo.EXPECT().
-			CreateSession(ctx, mock.Anything).
-			Return(nil)
+			CreateSession(ctx, mock.MatchedBy(func(session *entity.Session) bool {
+				return session.UserID == user.ID &&
+					len(session.Token) == 32 &&
+					!session.ExpiresAt.IsZero()
+			})).
+			Return(nil).
+			Maybe() // This may or may not be called depending on goroutine scheduling
 
 		resp, err := svc.LoginUser(ctx, req)
 		assert.Empty(t, resp)
@@ -327,6 +336,7 @@ func Test_AuthService_LoginUser(t *testing.T) {
 			Role:         enum.RoleUser,
 		}
 
+		// Setup expectations
 		mocks.userSvc.EXPECT().
 			GetUserByEmail(ctx, req.Email).
 			Return(user, nil)
@@ -335,15 +345,59 @@ func Test_AuthService_LoginUser(t *testing.T) {
 			Compare(req.Password, passwordHash).
 			Return(true)
 
+		// JWT creation succeeds
 		mocks.jwt.EXPECT().
 			Create(user.ID, user.Role).
 			Return("access_token", nil)
 
+		// Session creation fails
 		mocks.authRepo.EXPECT().
 			CreateSession(ctx, mock.MatchedBy(func(session *entity.Session) bool {
-				return session.UserID == user.ID
+				return session.UserID == user.ID &&
+					len(session.Token) == 32 &&
+					!session.ExpiresAt.IsZero()
 			})).
 			Return(errors.New("db error"))
+
+		resp, err := svc.LoginUser(ctx, req)
+		assert.Empty(t, resp)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+
+	t.Run("both operations fail", func(t *testing.T) {
+		svc, mocks := setupAuthServiceMocks(t)
+
+		passwordHash := "hashed_password"
+		user := &entity.User{
+			ID:           uuid.New(),
+			Email:        req.Email,
+			PasswordHash: passwordHash,
+			Role:         enum.RoleUser,
+		}
+
+		// Setup expectations
+		mocks.userSvc.EXPECT().
+			GetUserByEmail(ctx, req.Email).
+			Return(user, nil)
+
+		mocks.bcrypt.EXPECT().
+			Compare(req.Password, passwordHash).
+			Return(true)
+
+		// Both operations fail
+		mocks.jwt.EXPECT().
+			Create(user.ID, user.Role).
+			Return("", errors.New("jwt error"))
+
+		mocks.authRepo.EXPECT().
+			CreateSession(ctx, mock.MatchedBy(func(session *entity.Session) bool {
+				return session.UserID == user.ID &&
+					len(session.Token) == 32 &&
+					!session.ExpiresAt.IsZero()
+			})).
+			Return(errors.New("db error")).
+			Maybe() // This may or may not be called depending on goroutine scheduling
 
 		resp, err := svc.LoginUser(ctx, req)
 		assert.Empty(t, resp)
@@ -373,20 +427,14 @@ func Test_AuthService_RegisterUser(t *testing.T) {
 			DeleteUserRegisterOTP(ctx, req.Email).
 			Return(nil)
 
-		hashedPassword := "hashed_password"
-		mocks.bcrypt.EXPECT().
-			Hash(req.Password).
-			Return(hashedPassword, nil)
-
 		userID := uuid.New()
 		mocks.userSvc.EXPECT().
-			CreateUser(ctx, mock.MatchedBy(func(createReq *dto.CreateUserRequest) bool {
-				return createReq.Email == req.Email &&
-					createReq.Name == req.Name &&
-					createReq.PasswordHash == hashedPassword &&
-					createReq.Role == enum.RoleUser
-			})).
-			Return(userID, nil)
+			CreateUser(ctx, &dto.CreateUserRequest{
+				Name:     req.Name,
+				Email:    req.Email,
+				Password: req.Password,
+				Role:     enum.RoleUser,
+			}).Return(userID, nil)
 
 		// Mock login expectations
 		mockLoginExpectations(mocks, ctx, req.Email, req.Password, userID)
@@ -452,27 +500,6 @@ func Test_AuthService_RegisterUser(t *testing.T) {
 		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 
-	t.Run("error - password hash fails", func(t *testing.T) {
-		svc, mocks := setupAuthServiceMocks(t)
-
-		mocks.authRepo.EXPECT().
-			GetUserRegisterOTP(ctx, req.Email).
-			Return(req.OTP, nil)
-
-		mocks.authRepo.EXPECT().
-			DeleteUserRegisterOTP(ctx, req.Email).
-			Return(nil)
-
-		mocks.bcrypt.EXPECT().
-			Hash(req.Password).
-			Return("", errors.New("bcrypt error"))
-
-		resp, err := svc.RegisterUser(ctx, req)
-		assert.Empty(t, resp)
-		assert.Error(t, err)
-		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
-	})
-
 	t.Run("error - create user fails", func(t *testing.T) {
 		svc, mocks := setupAuthServiceMocks(t)
 
@@ -483,11 +510,6 @@ func Test_AuthService_RegisterUser(t *testing.T) {
 		mocks.authRepo.EXPECT().
 			DeleteUserRegisterOTP(ctx, req.Email).
 			Return(nil)
-
-		hashedPassword := "hashed_password"
-		mocks.bcrypt.EXPECT().
-			Hash(req.Password).
-			Return(hashedPassword, nil)
 
 		mocks.userSvc.EXPECT().
 			CreateUser(ctx, mock.Anything).

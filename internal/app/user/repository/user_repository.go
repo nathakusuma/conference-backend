@@ -27,8 +27,8 @@ func (r *userRepository) createUser(ctx context.Context, tx sqlx.ExtContext, use
 		ctx,
 		tx,
 		`INSERT INTO users (
-                   id, name, password_hash, role, email, auth_method
-                   ) VALUES (:id, :name, :password_hash, :role, :email, :auth_method)`,
+                   id, name, password_hash, role, email
+                   ) VALUES (:id, :name, :password_hash, :role, :email)`,
 		user,
 	)
 	if err != nil {

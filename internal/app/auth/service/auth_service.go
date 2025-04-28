@@ -190,9 +190,7 @@ func (s *authService) RegisterUser(ctx context.Context,
 	})
 }
 
-func (s *authService) LoginUser(ctx context.Context,
-	req dto.LoginUserRequest) (dto.LoginResponse, error) {
-
+func (s *authService) LoginUser(ctx context.Context, req dto.LoginUserRequest) (dto.LoginResponse, error) {
 	var resp dto.LoginResponse
 
 	// get user by email
@@ -216,64 +214,36 @@ func (s *authService) LoginUser(ctx context.Context,
 		return resp, errorpkg.ErrCredentialsNotMatch
 	}
 
-	// Create channels for token generation results
-	type tokenResult struct {
-		token string
-		err   error
+	// Generate access token first
+	accessToken, err := s.jwt.Create(user.ID, user.Role)
+	if err != nil {
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error":      err.Error(),
+			"user.email": req.Email,
+		}, "[AuthService][LoginUser] failed to generate access token")
+		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
 	}
-	accessTokenCh := make(chan tokenResult)
-	refreshTokenCh := make(chan tokenResult)
-
-	// Generate access token
-	go func() {
-		token, err := s.jwt.Create(user.ID, user.Role)
-		accessTokenCh <- tokenResult{token: token, err: err}
-	}()
 
 	// Generate and store refresh token
-	go func() {
-		refreshToken := randgen.RandomString(32)
-		err := s.repo.CreateAuthSession(ctx, &entity.AuthSession{
-			Token:     refreshToken,
-			UserID:    user.ID,
-			ExpiresAt: time.Now().Add(env.GetEnv().JwtRefreshExpireDuration),
-		})
-		refreshTokenCh <- tokenResult{token: refreshToken, err: err}
-	}()
-
-	var accessResult, refreshResult tokenResult
-	resultsReceived := 0
-
-	// Wait for both operations to complete in any order
-	for resultsReceived < 2 {
-		select {
-		case accessResult = <-accessTokenCh:
-			if accessResult.err != nil {
-				traceID := log.ErrorWithTraceID(map[string]interface{}{
-					"error":      accessResult.err.Error(),
-					"user.email": req.Email,
-				}, "[AuthService][LoginUser] failed to generate access token")
-				return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
-			}
-			resultsReceived++
-
-		case refreshResult = <-refreshTokenCh:
-			if refreshResult.err != nil {
-				traceID := log.ErrorWithTraceID(map[string]interface{}{
-					"error":      refreshResult.err.Error(),
-					"user.email": req.Email,
-				}, "[AuthService][LoginUser] failed to store auth session")
-				return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
-			}
-			resultsReceived++
-		}
+	refreshToken := randgen.RandomString(32)
+	err = s.repo.CreateAuthSession(ctx, &entity.AuthSession{
+		Token:     refreshToken,
+		UserID:    user.ID,
+		ExpiresAt: time.Now().Add(env.GetEnv().JwtRefreshExpireDuration),
+	})
+	if err != nil {
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error":      err.Error(),
+			"user.email": req.Email,
+		}, "[AuthService][LoginUser] failed to store auth session")
+		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
 	}
 
 	userResp := dto.UserResponse{}
 	userResp.PopulateFromEntity(user)
 	resp = dto.LoginResponse{
-		AccessToken:  accessResult.token,
-		RefreshToken: refreshResult.token,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 		User:         &userResp,
 	}
 

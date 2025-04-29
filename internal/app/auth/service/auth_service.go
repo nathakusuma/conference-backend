@@ -4,6 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"net/url"
+	"strconv"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/nathakusuma/astungkara/domain/contract"
 	"github.com/nathakusuma/astungkara/domain/dto"
@@ -18,9 +22,6 @@ import (
 	"github.com/nathakusuma/astungkara/pkg/randgen"
 	"github.com/nathakusuma/astungkara/pkg/uuidpkg"
 	"github.com/redis/go-redis/v9"
-	"net/url"
-	"strconv"
-	"time"
 )
 
 type authService struct {
@@ -97,6 +98,10 @@ func (s *authService) RequestOTPRegisterUser(ctx context.Context, email string) 
 			}, "[AuthService][RequestOTPRegisterUser] failed to send email")
 		}
 	}()
+
+	log.Info(map[string]interface{}{
+		"user.email": email,
+	}, "[AuthService][RequestOTPRegisterUser] otp requested")
 
 	return nil
 }
@@ -385,6 +390,10 @@ func (s *authService) RequestOTPResetPassword(ctx context.Context, email string)
 			}, "[AuthService][RequestOTPResetPassword] failed to send email")
 		}
 	}()
+
+	log.Info(map[string]interface{}{
+		"user.email": email,
+	}, "[AuthService][RequestOTPResetPassword] otp requested")
 
 	return nil
 }

@@ -28,6 +28,14 @@ func (u *UserResponse) PopulateFromEntity(user *entity.User) *UserResponse {
 	return u
 }
 
+func (u *UserResponse) PopulateMinimalFromEntity(user *entity.User) *UserResponse {
+	u.ID = user.ID
+	u.Name = user.Name
+	u.Role = user.Role
+	u.Bio = user.Bio
+	return u
+}
+
 type CreateUserRequest struct {
 	Name     string        `json:"name" validate:"required,min=3,max=100,ascii"`
 	Email    string        `json:"email" validate:"required,email,max=320"`

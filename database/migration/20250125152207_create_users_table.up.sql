@@ -3,7 +3,7 @@ CREATE TABLE users (
 	name VARCHAR(100) NOT NULL,
 	email VARCHAR(320) NOT NULL,
 	password_hash CHAR(60) NOT NULL,
-	role VARCHAR(50) NOT NULL DEFAULT 'user',
+    role VARCHAR(50) NOT NULL DEFAULT 'user' CHECK ( role IN ('admin', 'event_coordinator', 'user') ),
     bio VARCHAR(500),
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

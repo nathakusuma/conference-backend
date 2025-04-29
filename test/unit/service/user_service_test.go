@@ -553,3 +553,61 @@ func Test_UserService_UpdateUser(t *testing.T) {
 		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
 }
+
+func Test_UserService_DeleteUser(t *testing.T) {
+	ctx := context.Background()
+	userID := uuid.New()
+
+	t.Run("success", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		// Expect user deletion
+		mocks.userRepo.EXPECT().
+			DeleteUser(ctx, userID).
+			Return(nil)
+
+		err := svc.DeleteUser(ctx, userID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("success - with requester ID in context", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		// Create context with requester ID
+		requesterID := uuid.New()
+		ctxWithUser := context.WithValue(ctx, "user.id", requesterID)
+
+		// Expect user deletion
+		mocks.userRepo.EXPECT().
+			DeleteUser(ctxWithUser, userID).
+			Return(nil)
+
+		err := svc.DeleteUser(ctxWithUser, userID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("error - user not found", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		// Expect deletion to return not found error
+		mocks.userRepo.EXPECT().
+			DeleteUser(ctx, userID).
+			Return(sql.ErrNoRows)
+
+		err := svc.DeleteUser(ctx, userID)
+		assert.ErrorIs(t, err, errorpkg.ErrNotFound)
+	})
+
+	t.Run("error - repository error", func(t *testing.T) {
+		svc, mocks := setupUserServiceTest(t)
+
+		// Expect deletion to return generic error
+		mocks.userRepo.EXPECT().
+			DeleteUser(ctx, userID).
+			Return(errors.New("db error"))
+
+		err := svc.DeleteUser(ctx, userID)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+	})
+}

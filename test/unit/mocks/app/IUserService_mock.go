@@ -86,6 +86,53 @@ func (_c *MockIUserService_CreateUser_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
+// DeleteUser provides a mock function with given fields: ctx, id
+func (_m *MockIUserService) DeleteUser(ctx context.Context, id uuid.UUID) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockIUserService_DeleteUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteUser'
+type MockIUserService_DeleteUser_Call struct {
+	*mock.Call
+}
+
+// DeleteUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+func (_e *MockIUserService_Expecter) DeleteUser(ctx interface{}, id interface{}) *MockIUserService_DeleteUser_Call {
+	return &MockIUserService_DeleteUser_Call{Call: _e.mock.On("DeleteUser", ctx, id)}
+}
+
+func (_c *MockIUserService_DeleteUser_Call) Run(run func(ctx context.Context, id uuid.UUID)) *MockIUserService_DeleteUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockIUserService_DeleteUser_Call) Return(_a0 error) *MockIUserService_DeleteUser_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockIUserService_DeleteUser_Call) RunAndReturn(run func(context.Context, uuid.UUID) error) *MockIUserService_DeleteUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUserByEmail provides a mock function with given fields: ctx, email
 func (_m *MockIUserService) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	ret := _m.Called(ctx, email)

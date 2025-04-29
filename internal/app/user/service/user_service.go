@@ -158,3 +158,36 @@ func (s *userService) UpdatePassword(ctx context.Context, email, newPassword str
 
 	return nil
 }
+
+func (s *userService) UpdateUser(ctx context.Context, id uuid.UUID, req dto.UpdateUserRequest) error {
+	// get user by ID
+	user, err := s.GetUserByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// update user data
+	if req.Name != nil {
+		user.Name = *req.Name
+	}
+	if req.Bio != nil {
+		user.Bio = req.Bio
+	}
+
+	// update user
+	err = s.userRepo.UpdateUser(ctx, user)
+	if err != nil {
+		traceID := log.ErrorWithTraceID(map[string]interface{}{
+			"error": err.Error(),
+			"user":  user,
+		}, "[UserService][UpdateUser] Failed to update user")
+
+		return errorpkg.ErrInternalServer.WithTraceID(traceID)
+	}
+
+	log.Info(map[string]interface{}{
+		"user": user,
+	}, "[UserService][UpdateUser] User updated")
+
+	return nil
+}

@@ -184,13 +184,13 @@ func (s *authService) RegisterUser(ctx context.Context,
 	}, "[AuthService][RegisterUser] user registered")
 
 	// login user
-	return s.LoginUser(ctx, dto.LoginUserRequest{
+	return s.Login(ctx, dto.LoginUserRequest{
 		Email:    req.Email,
 		Password: req.Password,
 	})
 }
 
-func (s *authService) LoginUser(ctx context.Context, req dto.LoginUserRequest) (dto.LoginResponse, error) {
+func (s *authService) Login(ctx context.Context, req dto.LoginUserRequest) (dto.LoginResponse, error) {
 	var resp dto.LoginResponse
 
 	// get user by email
@@ -203,7 +203,7 @@ func (s *authService) LoginUser(ctx context.Context, req dto.LoginUserRequest) (
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
 			"error":      err.Error(),
 			"user.email": req.Email,
-		}, "[AuthService][LoginUser] failed to get user by email")
+		}, "[AuthService][Login] failed to get user by email")
 
 		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
 	}
@@ -220,7 +220,7 @@ func (s *authService) LoginUser(ctx context.Context, req dto.LoginUserRequest) (
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
 			"error":      err.Error(),
 			"user.email": req.Email,
-		}, "[AuthService][LoginUser] failed to generate access token")
+		}, "[AuthService][Login] failed to generate access token")
 		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
 	}
 
@@ -235,7 +235,7 @@ func (s *authService) LoginUser(ctx context.Context, req dto.LoginUserRequest) (
 		traceID := log.ErrorWithTraceID(map[string]interface{}{
 			"error":      err.Error(),
 			"user.email": req.Email,
-		}, "[AuthService][LoginUser] failed to store auth session")
+		}, "[AuthService][Login] failed to store auth session")
 		return resp, errorpkg.ErrInternalServer.WithTraceID(traceID)
 	}
 
@@ -249,7 +249,7 @@ func (s *authService) LoginUser(ctx context.Context, req dto.LoginUserRequest) (
 
 	log.Info(map[string]interface{}{
 		"user.email": req.Email,
-	}, "[AuthService][LoginUser] user logged in")
+	}, "[AuthService][Login] user logged in")
 
 	return resp, nil
 }
@@ -439,7 +439,7 @@ func (s *authService) ResetPassword(ctx context.Context, req dto.ResetPasswordRe
 		"user.email": req.Email,
 	}, "[AuthService][ResetPassword] password reset")
 
-	return s.LoginUser(ctx, dto.LoginUserRequest{
+	return s.Login(ctx, dto.LoginUserRequest{
 		Email:    req.Email,
 		Password: req.NewPassword,
 	})

@@ -229,7 +229,7 @@ func Test_AuthService_LoginUser(t *testing.T) {
 
 		mockLoginExpectations(mocks, ctx, req.Email, req.Password, userID)
 
-		resp, err := svc.LoginUser(ctx, req)
+		resp, err := svc.Login(ctx, req)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, resp.AccessToken)
 		assert.NotEmpty(t, resp.RefreshToken)
@@ -243,7 +243,7 @@ func Test_AuthService_LoginUser(t *testing.T) {
 			GetUserByEmail(ctx, req.Email).
 			Return(nil, errorpkg.ErrNotFound)
 
-		resp, err := svc.LoginUser(ctx, req)
+		resp, err := svc.Login(ctx, req)
 		assert.Empty(t, resp)
 		assert.ErrorIs(t, err, errorpkg.ErrNotFound)
 	})
@@ -255,7 +255,7 @@ func Test_AuthService_LoginUser(t *testing.T) {
 			GetUserByEmail(ctx, req.Email).
 			Return(nil, errors.New("db error"))
 
-		resp, err := svc.LoginUser(ctx, req)
+		resp, err := svc.Login(ctx, req)
 		assert.Empty(t, resp)
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
@@ -278,7 +278,7 @@ func Test_AuthService_LoginUser(t *testing.T) {
 			Compare(req.Password, passwordHash).
 			Return(false)
 
-		resp, err := svc.LoginUser(ctx, req)
+		resp, err := svc.Login(ctx, req)
 		assert.Empty(t, resp)
 		assert.ErrorIs(t, err, errorpkg.ErrCredentialsNotMatch)
 	})
@@ -319,7 +319,7 @@ func Test_AuthService_LoginUser(t *testing.T) {
 			Return(nil).
 			Maybe() // This may or may not be called depending on goroutine scheduling
 
-		resp, err := svc.LoginUser(ctx, req)
+		resp, err := svc.Login(ctx, req)
 		assert.Empty(t, resp)
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
@@ -359,7 +359,7 @@ func Test_AuthService_LoginUser(t *testing.T) {
 			})).
 			Return(errors.New("db error"))
 
-		resp, err := svc.LoginUser(ctx, req)
+		resp, err := svc.Login(ctx, req)
 		assert.Empty(t, resp)
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
@@ -399,7 +399,7 @@ func Test_AuthService_LoginUser(t *testing.T) {
 			Return(errors.New("db error")).
 			Maybe() // This may or may not be called depending on goroutine scheduling
 
-		resp, err := svc.LoginUser(ctx, req)
+		resp, err := svc.Login(ctx, req)
 		assert.Empty(t, resp)
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)

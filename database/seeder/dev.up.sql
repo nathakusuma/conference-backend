@@ -192,5 +192,95 @@ $$
         SET deleted_at = NOW() - INTERVAL '1 day'
         WHERE title LIKE 'Deleted Conference%';
 
+        -- Register all users for Past Conference 1
+        INSERT INTO registrations (user_id, conference_id, created_at)
+        SELECT users.id,
+               conferences.id,
+               NOW() - INTERVAL '11 days'
+        FROM users
+                 CROSS JOIN conferences
+        WHERE conferences.title = 'Past Conference 1'
+          AND users.role = 'user';
+
+        -- Register User 1, User 2, User 3 for Past Conference 2
+        INSERT INTO registrations (user_id, conference_id, created_at)
+        SELECT users.id,
+               conferences.id,
+               NOW() - INTERVAL '11 days'
+        FROM users
+                 CROSS JOIN conferences
+        WHERE conferences.title = 'Past Conference 2'
+          AND users.id IN (user1_id, user2_id, user3_id);
+
+        -- Register User 2, User 3, User 4 for Past Conference 3
+        INSERT INTO registrations (user_id, conference_id, created_at)
+        SELECT users.id,
+               conferences.id,
+               NOW() - INTERVAL '16 days'
+        FROM users
+                 CROSS JOIN conferences
+        WHERE conferences.title = 'Past Conference 3'
+          AND users.id IN (user2_id, user3_id, user4_id);
+
+        -- Register User 1, User 4 for Past Conference 4
+        INSERT INTO registrations (user_id, conference_id, created_at)
+        SELECT users.id,
+               conferences.id,
+               NOW() - INTERVAL '16 days'
+        FROM users
+                 CROSS JOIN conferences
+        WHERE conferences.title = 'Past Conference 4'
+          AND users.id IN (user1_id, user4_id);
+
+        -- Register all users for Current Active Conference
+        INSERT INTO registrations (user_id, conference_id, created_at)
+        SELECT users.id,
+               conferences.id,
+               NOW() - INTERVAL '6 days'
+        FROM users
+                 CROSS JOIN conferences
+        WHERE conferences.title = 'Current Active Conference'
+          AND users.role = 'user';
+
+        -- Register specific users for Future Conference 1
+        INSERT INTO registrations (user_id, conference_id, created_at)
+        SELECT users.id,
+               conferences.id,
+               NOW() - INTERVAL '6 days'
+        FROM users
+                 CROSS JOIN conferences
+        WHERE conferences.title = 'Future Conference 1'
+          AND users.id IN (user1_id, user2_id);
+
+        -- Register specific users for Future Conference 2
+        INSERT INTO registrations (user_id, conference_id, created_at)
+        SELECT users.id,
+               conferences.id,
+               NOW() - INTERVAL '6 days'
+        FROM users
+                 CROSS JOIN conferences
+        WHERE conferences.title = 'Future Conference 2'
+          AND users.id IN (user3_id, user4_id);
+
+        -- Register User 1 for Future Conference 3
+        INSERT INTO registrations (user_id, conference_id, created_at)
+        SELECT users.id,
+               conferences.id,
+               NOW() - INTERVAL '2 days'
+        FROM users
+                 CROSS JOIN conferences
+        WHERE conferences.title = 'Future Conference 3'
+          AND users.id = user1_id;
+
+        -- Register User 2 for Future Conference 4
+        INSERT INTO registrations (user_id, conference_id, created_at)
+        SELECT users.id,
+               conferences.id,
+               NOW() - INTERVAL '2 days'
+        FROM users
+                 CROSS JOIN conferences
+        WHERE conferences.title = 'Future Conference 4'
+          AND users.id = user2_id;
+
     END
 $$;

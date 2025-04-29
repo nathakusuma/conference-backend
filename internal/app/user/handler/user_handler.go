@@ -33,7 +33,7 @@ func InitUserHandler(
 		midw.RequireOneOfRoles(enum.RoleAdmin),
 		handler.createUser(),
 	)
-	userGroup.Patch("",
+	userGroup.Patch("/me",
 		midw.RequireAuthenticated(),
 		handler.updateUser(),
 	)

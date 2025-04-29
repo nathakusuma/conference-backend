@@ -6,11 +6,11 @@
 # Default environment variables for Docker Compose
 POSTGRES_URL := postgres://$(DB_USER):$(DB_PASS)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable
 
-# Run migration commands
 MIGRATE_CMD=docker compose run --rm migrate -database "${POSTGRES_URL}" -path migration/
+SEED_CMD=docker compose exec -T db psql -U $(DB_USER) -d $(DB_NAME) -W $(DB_PASS) < database/seeder/
 
 # Targets for different migration commands
-.PHONY: up down redo status version force
+.PHONY: up down redo status version force seed-up seed-down
 
 # Apply all migrations
 migrate-up:
@@ -35,3 +35,14 @@ migrate-version:
 # Force a specific version (replace <version> with the desired version)
 migrate-force:
 	$(MIGRATE_CMD) force $(version)
+
+# Seeding commands
+seed-up:
+	$(SEED_CMD)$(word 2,$(MAKECMDGOALS)).up.sql
+
+seed-down:
+	$(SEED_CMD)$(word 2,$(MAKECMDGOALS)).down.sql
+
+# Catch the environment argument
+%:
+	@:

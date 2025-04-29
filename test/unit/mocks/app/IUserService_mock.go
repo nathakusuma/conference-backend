@@ -252,6 +252,54 @@ func (_c *MockIUserService_UpdatePassword_Call) RunAndReturn(run func(context.Co
 	return _c
 }
 
+// UpdateUser provides a mock function with given fields: ctx, id, req
+func (_m *MockIUserService) UpdateUser(ctx context.Context, id uuid.UUID, req dto.UpdateUserRequest) error {
+	ret := _m.Called(ctx, id, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, dto.UpdateUserRequest) error); ok {
+		r0 = rf(ctx, id, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockIUserService_UpdateUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateUser'
+type MockIUserService_UpdateUser_Call struct {
+	*mock.Call
+}
+
+// UpdateUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+//   - req dto.UpdateUserRequest
+func (_e *MockIUserService_Expecter) UpdateUser(ctx interface{}, id interface{}, req interface{}) *MockIUserService_UpdateUser_Call {
+	return &MockIUserService_UpdateUser_Call{Call: _e.mock.On("UpdateUser", ctx, id, req)}
+}
+
+func (_c *MockIUserService_UpdateUser_Call) Run(run func(ctx context.Context, id uuid.UUID, req dto.UpdateUserRequest)) *MockIUserService_UpdateUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(dto.UpdateUserRequest))
+	})
+	return _c
+}
+
+func (_c *MockIUserService_UpdateUser_Call) Return(_a0 error) *MockIUserService_UpdateUser_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockIUserService_UpdateUser_Call) RunAndReturn(run func(context.Context, uuid.UUID, dto.UpdateUserRequest) error) *MockIUserService_UpdateUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockIUserService creates a new instance of MockIUserService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockIUserService(t interface {

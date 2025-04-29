@@ -7,6 +7,9 @@ import (
 	authhnd "github.com/nathakusuma/astungkara/internal/app/auth/handler"
 	authrepo "github.com/nathakusuma/astungkara/internal/app/auth/repository"
 	authsvc "github.com/nathakusuma/astungkara/internal/app/auth/service"
+	conferencehnd "github.com/nathakusuma/astungkara/internal/app/conference/handler"
+	conferencerepo "github.com/nathakusuma/astungkara/internal/app/conference/repository"
+	conferencesvc "github.com/nathakusuma/astungkara/internal/app/conference/service"
 	userhnd "github.com/nathakusuma/astungkara/internal/app/user/handler"
 	userrepo "github.com/nathakusuma/astungkara/internal/app/user/repository"
 	usersvc "github.com/nathakusuma/astungkara/internal/app/user/service"
@@ -90,10 +93,13 @@ func (s *httpServer) MountRoutes(db *sqlx.DB, rds *redis.Client) {
 
 	userRepository := userrepo.NewUserRepository(db)
 	authRepository := authrepo.NewAuthRepository(db, rds)
+	conferenceRepository := conferencerepo.NewConferenceRepository(db)
 
 	userService := usersvc.NewUserService(userRepository, bcryptInstance, uuidInstance)
 	authService := authsvc.NewAuthService(authRepository, userService, bcryptInstance, jwtAccess, mailer, uuidInstance)
+	conferenceService := conferencesvc.NewConferenceService(conferenceRepository, uuidInstance)
 
 	userhnd.InitUserHandler(v1, middlewareInstance, validatorInstance, userService)
 	authhnd.InitAuthHandler(v1, middlewareInstance, validatorInstance, authService)
+	conferencehnd.InitConferenceHandler(v1, middlewareInstance, validatorInstance, conferenceService)
 }

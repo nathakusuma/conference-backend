@@ -511,23 +511,6 @@ func Test_ConferenceService_GetConferenceByID(t *testing.T) {
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
 	})
-
-	t.Run("error - missing user context", func(t *testing.T) {
-		svc, _ := setupConferenceServiceTest(t)
-
-		result, err := svc.GetConferenceByID(ctx, conferenceID)
-		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
-	})
-
-	t.Run("error - missing role context", func(t *testing.T) {
-		svc, _ := setupConferenceServiceTest(t)
-		ctx := context.WithValue(ctx, "user.id", userID)
-
-		result, err := svc.GetConferenceByID(ctx, conferenceID)
-		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
-	})
 }
 
 func Test_ConferenceService_GetConferences(t *testing.T) {

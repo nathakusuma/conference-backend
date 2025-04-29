@@ -144,16 +144,8 @@ func (s *conferenceService) CreateConferenceProposal(ctx context.Context,
 }
 
 func (s *conferenceService) GetConferenceByID(ctx context.Context, id uuid.UUID) (*dto.ConferenceResponse, error) {
-	requesterID, ok := ctx.Value("user.id").(uuid.UUID)
-	requesterRole, ok2 := ctx.Value("user.role").(enum.UserRole)
-	if !ok || !ok2 {
-		traceID := log.ErrorWithTraceID(map[string]interface{}{
-			"error":          errors.New("failed to get user id or role from context"),
-			"requester.id":   requesterID,
-			"requester.role": requesterRole,
-		}, "[ConferenceService][GetConferenceByID] Failed to get user id or role from context")
-		return nil, errorpkg.ErrInternalServer.WithTraceID(traceID)
-	}
+	requesterID, _ := ctx.Value("user.id").(uuid.UUID)
+	requesterRole, _ := ctx.Value("user.role").(enum.UserRole)
 
 	conference, err := s.r.GetConferenceByID(ctx, id)
 	if err != nil {

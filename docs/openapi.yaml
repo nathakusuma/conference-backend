@@ -72,6 +72,101 @@ components:
           examples:
             - "Seorang programmer pemula yang sedang belajar backend"
 
+    ConferenceStatus:
+      type: string
+      enum: [ pending, approved, rejected ]
+      examples:
+        - "approved"
+
+    Conference:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          examples:
+            - "Konferensi Programmer Backend"
+        description:
+          type: string
+          examples:
+            - "Membahas masalah backend terkini"
+        speaker_name:
+          type: string
+          examples:
+            - "Yoga Raditya Nala"
+        speaker_title:
+          type: string
+          examples:
+            - "Sepuh backend"
+        target_audience:
+          type: string
+          examples:
+            - "Junior Backend Developer di Malang Raya"
+        prerequisites:
+          type: [ string, "null" ]
+          examples:
+            - "Memiliki pemahaman dasar tentang bahasa pemrograman Go"
+        seats:
+          type: integer
+          minimum: 1
+          examples:
+            - 10
+        starts_at:
+          type: string
+          format: date-time
+          examples:
+            - "2025-01-28T01:04:40+07:00"
+        ends_at:
+          type: string
+          format: date-time
+          examples:
+            - "2025-01-29T01:04:40+07:00"
+        host:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+              examples:
+                - "Natha Kusuma"
+        status:
+          $ref: '#/components/schemas/ConferenceStatus'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        seats_taken:
+          type: [ integer, "null" ]
+          examples:
+            - 0
+
+    Pagination:
+      type: object
+      properties:
+        has_more:
+          type: boolean
+          description: Indicates if there are more items available
+          examples:
+            - true
+        first_id:
+          type: string
+          format: uuid
+          description: ID of the first item in the current page
+          examples:
+            - "0194831b-9072-4090-803e-ffb74d52eb5c"
+        last_id:
+          type: string
+          format: uuid
+          description: ID of the last item in the current page
+          examples:
+            - "019497b5-0072-404b-804a-371d9a961ac6"
+
     ErrorResponse:
       type: object
       properties:
@@ -209,6 +304,8 @@ tags:
     description: Authentication and authorization operations
   - name: Users
     description: User management operations
+  - name: Conferences
+    description: Conference management operations
 
 paths:
   /auth/register/otp:
@@ -756,5 +853,599 @@ paths:
           $ref: '#/components/responses/ForbiddenRole'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /conferences:
+    post:
+      tags:
+        - Conferences
+      summary: Create a conference proposal
+      description: Create a new conference proposal. Available to users with user role.
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - description
+                - speaker_name
+                - speaker_title
+                - target_audience
+                - seats
+                - starts_at
+                - ends_at
+              properties:
+                title:
+                  type: string
+                  minLength: 3
+                  maxLength: 100
+                  examples:
+                    - "Konferensi Programmer Backend"
+                description:
+                  type: string
+                  minLength: 3
+                  maxLength: 1000
+                  examples:
+                    - "Membahas masalah backend terkini"
+                speaker_name:
+                  type: string
+                  minLength: 3
+                  maxLength: 100
+                  examples:
+                    - "Yoga Raditya Nala"
+                speaker_title:
+                  type: string
+                  minLength: 3
+                  maxLength: 100
+                  examples:
+                    - "Sepuh backend"
+                target_audience:
+                  type: string
+                  minLength: 3
+                  maxLength: 255
+                  examples:
+                    - "Junior Backend Developer di Malang Raya"
+                prerequisites:
+                  type: [ string, "null" ]
+                  maxLength: 255
+                  examples:
+                    - "Memiliki pemahaman dasar tentang bahasa pemrograman Go"
+                seats:
+                  type: integer
+                  minimum: 1
+                  examples:
+                    - 10
+                starts_at:
+                  type: string
+                  format: date-time
+                  examples:
+                    - "2025-01-28T01:04:40+07:00"
+                ends_at:
+                  type: string
+                  format: date-time
+                  examples:
+                    - "2025-01-28T01:06:40+07:00"
+      responses:
+        '201':
+          description: Conference proposal created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conference:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/ForbiddenRole'
+        '409':
+          description: Conflict - User has active proposal or time window conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                userHasActiveProposal:
+                  summary: User has active proposal
+                  value:
+                    message: "You already have an active proposal. Please wait until it's accepted or delete it."
+                    detail:
+                      conference:
+                        id: "0194a3d7-b697-7e92-95c8-2517c197bcec"
+                        title: "Konferensi Programmer Backend"
+                        status: "pending"
+                        created_at: "2025-01-26T18:20:10.776315Z"
+                    error_code: "USER_HAS_ACTIVE_PROPOSAL"
+                timeWindowConflict:
+                  summary: Time window conflict
+                  value:
+                    message: "There's already a conference in the same time window. Please choose another time window."
+                    detail:
+                      conferences:
+                        - id: "0194831b-9072-4090-803e-ffb74d52eb5c"
+                          title: "Future Conference 1"
+                          starts_at: "2025-02-01T09:46:49.330992Z"
+                          ends_at: "2025-02-01T11:46:49.330992Z"
+                    error_code: "TIME_WINDOW_CONFLICT"
+        '422':
+          description: Validation error or time-related error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validationError:
+                  summary: Validation error
+                  value:
+                    message: "There are invalid fields in your request. Please check and try again"
+                    detail:
+                      - title:
+                          tag: "required"
+                          param: ""
+                          translation: "Title is a required field"
+                    error_code: "VALIDATION_ERROR"
+                timeAlreadyPassed:
+                  summary: Time already passed
+                  value:
+                    message: "Time has already passed. Please use future time."
+                    error_code: "TIME_ALREADY_PASSED"
+                endTimeBeforeStart:
+                  summary: End time before start
+                  value:
+                    message: "End time is before start time. Please use correct time."
+                    error_code: "END_TIME_BEFORE_START"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - Conferences
+      summary: Get conferences by query
+      description: Get conferences based on query parameters. Available to users with user and event_coordinator roles.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: after_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Get conferences after this ID
+          example: "019497b5-0072-404b-804a-371d9a961ac6"
+        - name: before_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Get conferences before this ID
+          example: "0194831b-9072-4090-803e-ffb74d52eb5c"
+        - name: limit
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+          description: Number of conferences to return
+          example: 5
+        - name: host_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by host ID
+          example: "01940ca9-4c72-40fd-8072-75882240bcc3"
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [ pending, approved, rejected ]
+          description: Filter by conference status
+          example: "approved"
+        - name: starts_before
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter conferences starting before this time
+          example: "2025-03-25T09:46:49.330992Z"
+        - name: starts_after
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter conferences starting after this time
+          example: "2025-02-01T09:46:49.330992Z"
+        - name: include_past
+          in: query
+          schema:
+            type: boolean
+          description: Include past conferences
+          example: false
+        - name: order_by
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [ created_at, starts_at ]
+          description: Field to order by
+          example: "starts_at"
+        - name: order
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [ asc, desc ]
+          description: Sort order
+          example: "asc"
+        - name: title
+          in: query
+          schema:
+            type: string
+          description: Filter by conference title
+          example: "backend"
+      responses:
+        '200':
+          description: Successfully retrieved conferences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conferences:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Conference'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '403':
+          description: Forbidden - Cannot access other user's unapproved conferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "You're not allowed to access this resource."
+                error_code: "FORBIDDEN_USER"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /conferences/{id}:
+    get:
+      tags:
+        - Conferences
+      summary: Get conference by ID
+      description: Get a conference by its ID. Available to users with user and event_coordinator roles.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Conference ID
+      responses:
+        '200':
+          description: Successfully retrieved conference
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conference:
+                    $ref: '#/components/schemas/Conference'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
+        '403':
+          description: Forbidden - Host is other user and is not approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "You're not allowed to access this resource."
+                error_code: "FORBIDDEN_USER"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - Conferences
+      summary: Edit conference details
+      description: Update an existing conference's details. Available to users with user role.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Conference ID
+          example: "01948d68-4872-4007-8096-517b5e9bf6c2"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  minLength: 3
+                  maxLength: 100
+                  examples:
+                    - "Konferensi Programmer Backend Part 3"
+                description:
+                  type: string
+                  minLength: 3
+                  maxLength: 1000
+                  examples:
+                    - "Membahas teknologi backend terkini"
+                speaker_name:
+                  type: string
+                  minLength: 3
+                  maxLength: 100
+                  examples:
+                    - "Christopher Robin Tanugroho"
+                speaker_title:
+                  type: string
+                  minLength: 3
+                  maxLength: 100
+                  examples:
+                    - "The real sepuh of para sepuh"
+                target_audience:
+                  type: string
+                  minLength: 3
+                  maxLength: 255
+                  examples:
+                    - "Senior Backend Developer di Malang"
+                prerequisites:
+                  type: string
+                  maxLength: 255
+                  examples:
+                    - "Memiliki pemahaman mendalam tentang bahasa pemrograman Go"
+                seats:
+                  type: integer
+                  minimum: 1
+                  examples:
+                    - 10
+                starts_at:
+                  type: string
+                  format: date-time
+                  examples:
+                    - "2025-02-01T10:50:00.000000Z"
+                ends_at:
+                  type: string
+                  format: date-time
+                  examples:
+                    - "2025-02-01T14:45:00.000000Z"
+      responses:
+        '204':
+          description: Conference successfully updated
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          description: Forbidden - User not allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                forbiddenUser:
+                  summary: Forbidden User
+                  value:
+                    message: "You're not allowed to access this resource."
+                    error_code: "FORBIDDEN_USER"
+                forbiddenRole:
+                  summary: Forbidden Role
+                  value:
+                    message: "You're not allowed to access this resource."
+                    error_code: "FORBIDDEN_ROLE"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Time window conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "There's already a conference in the same time window. Please choose another time window."
+                detail:
+                  conferences:
+                    - id: "0194831b-9072-4090-803e-ffb74d52eb5c"
+                      title: "Description for future conference 1"
+                      starts_at: "2025-02-01T09:46:49.330992Z"
+                      ends_at: "2025-02-01T11:46:49.330992Z"
+                error_code: "TIME_WINDOW_CONFLICT"
+        '422':
+          description: Validation or business rule error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                updateApprovedTimeWindow:
+                  summary: Update Approved Time Window
+                  value:
+                    message: "You're not allowed to update an approved conference time window."
+                    error_code: "UPDATE_APPROVED_TIME_WINDOW"
+                updateRejectedConference:
+                  summary: Update Rejected Conference
+                  value:
+                    message: "You're not allowed to update a rejected conference."
+                    error_code: "UPDATE_REJECTED_CONFERENCE"
+                timeAlreadyPassed:
+                  summary: Time Already Passed
+                  value:
+                    message: "Time has already passed. Please use future time."
+                    error_code: "TIME_ALREADY_PASSED"
+                endTimeBeforeStart:
+                  summary: End Time Before Start
+                  value:
+                    message: "End time is before start time. Please use correct time."
+                    error_code: "END_TIME_BEFORE_START"
+                updatePastConference:
+                  summary: Update Past Conference
+                  value:
+                    message: "You're not allowed to update a past conference."
+                    error_code: "UPDATE_PAST_CONFERENCE"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Conferences
+      summary: Delete conference
+      description: Delete an existing conference. Available to users with user and event_coordinator roles.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Conference ID
+          example: "01948d68-4872-4007-8096-517b5e9bf6c2"
+      responses:
+        '204':
+          description: Conference successfully deleted
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          description: Forbidden - User not allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                forbiddenUser:
+                  summary: Not Author or Event Coordinator
+                  value:
+                    message: "You're not allowed to access this resource."
+                    error_code: "FORBIDDEN_USER"
+                forbiddenRole:
+                  summary: Forbidden Role
+                  value:
+                    message: "You're not allowed to access this resource."
+                    error_code: "FORBIDDEN_ROLE"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /conferences/{id}/status:
+    patch:
+      tags:
+        - Conferences
+      summary: Update conference status
+      description: Update the status of an existing conference. Available to users with event_coordinator role.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Conference ID
+          example: "01948d68-4872-4007-8096-517b5e9bf6c2"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  $ref: '#/components/schemas/ConferenceStatus'
+      responses:
+        '204':
+          description: Conference status successfully updated
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          description: Forbidden - User role not allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "You're not allowed to access this resource."
+                error_code: "FORBIDDEN_ROLE"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Time window conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "There's already a conference in the same time window. Please choose another time window."
+                detail:
+                  conferences:
+                    - id: "0194831b-9072-4090-803e-ffb74d52eb5c"
+                      title: "Description for future conference 1"
+                      starts_at: "2025-02-01T09:46:49.330992Z"
+                      ends_at: "2025-02-01T11:46:49.330992Z"
+                error_code: "TIME_WINDOW_CONFLICT"
+        '422':
+          description: Validation or business rule error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validationError:
+                  summary: Validation Error
+                  value:
+                    message: "There are invalid fields in your request. Please check and try again"
+                    detail:
+                      - status:
+                          tag: "required"
+                          param: ""
+                          translation: "Status is a required field"
+                    error_code: "VALIDATION_ERROR"
+                updatePastConferenceStatus:
+                  summary: Update Past Conference Status
+                  value:
+                    message: "You're only allowed to change past conference status from pending to rejected."
+                    error_code: "UPDATE_PAST_CONFERENCE_STATUS"
         '500':
           $ref: '#/components/responses/InternalServerError'

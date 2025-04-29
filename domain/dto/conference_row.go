@@ -1,4 +1,4 @@
-package repository
+package dto
 
 import (
 	"time"
@@ -8,7 +8,7 @@ import (
 	"github.com/nathakusuma/astungkara/domain/enum"
 )
 
-type conferenceJoinUserRow struct {
+type ConferenceJoinUserRow struct {
 	ID             uuid.UUID             `db:"id"`
 	Title          string                `db:"title"`
 	Description    string                `db:"description"`
@@ -27,7 +27,7 @@ type conferenceJoinUserRow struct {
 	HostName string `db:"host_name"`
 }
 
-func (r *conferenceJoinUserRow) toEntity() entity.Conference {
+func (r *ConferenceJoinUserRow) ToEntity() entity.Conference {
 	return entity.Conference{
 		ID:             r.ID,
 		Title:          r.Title,

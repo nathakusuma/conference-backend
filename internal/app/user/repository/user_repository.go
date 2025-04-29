@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"github.com/google/uuid"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/nathakusuma/astungkara/domain/contract"
@@ -87,4 +89,27 @@ func (r *userRepository) updateUser(ctx context.Context, tx sqlx.ExtContext, use
 
 func (r *userRepository) UpdateUser(ctx context.Context, user *entity.User) error {
 	return r.updateUser(ctx, r.conn, user)
+}
+
+func (r *userRepository) deleteUser(ctx context.Context, tx sqlx.ExtContext, id uuid.UUID) error {
+	res, err := tx.ExecContext(ctx,
+		`UPDATE users SET deleted_at = now() WHERE id = $1 AND deleted_at IS NULL`, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (r *userRepository) DeleteUser(ctx context.Context, id uuid.UUID) error {
+	return r.deleteUser(ctx, r.conn, id)
 }

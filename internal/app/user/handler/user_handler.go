@@ -28,8 +28,20 @@ func InitUserHandler(
 	}
 
 	userGroup := router.Group("/users")
-	userGroup.Post("", midw.RequireAuthenticated(), midw.RequireOneOfRoles(enum.RoleAdmin), handler.createUser())
-	userGroup.Patch("", midw.RequireAuthenticated(), handler.updateUser())
+	userGroup.Post("",
+		midw.RequireAuthenticated(),
+		midw.RequireOneOfRoles(enum.RoleAdmin),
+		handler.createUser(),
+	)
+	userGroup.Patch("",
+		midw.RequireAuthenticated(),
+		handler.updateUser(),
+	)
+	userGroup.Delete("/:id",
+		midw.RequireAuthenticated(),
+		midw.RequireOneOfRoles(enum.RoleAdmin),
+		handler.deleteUser(),
+	)
 }
 
 func (c *userHandler) createUser() fiber.Handler {
@@ -66,6 +78,21 @@ func (c *userHandler) updateUser() fiber.Handler {
 		}
 
 		if err := c.svc.UpdateUser(ctx.Context(), ctx.Locals("user.id").(uuid.UUID), req); err != nil {
+			return err
+		}
+
+		return ctx.SendStatus(fiber.StatusNoContent)
+	}
+}
+
+func (c *userHandler) deleteUser() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		userID, err := uuid.Parse(ctx.Params("id"))
+		if err != nil {
+			return errorpkg.ErrFailParseRequest
+		}
+
+		if err := c.svc.DeleteUser(ctx.Context(), userID); err != nil {
 			return err
 		}
 

@@ -10,7 +10,7 @@ MIGRATE_CMD=docker compose run --rm migrate -database "${POSTGRES_URL}" -path mi
 SEED_CMD=docker compose exec -T db psql -U $(DB_USER) -d $(DB_NAME) -W $(DB_PASS) < database/seeder/
 
 # Targets for different migration commands
-.PHONY: up down redo status version force seed-up seed-down run stop
+.PHONY: up down redo status version force seed-up seed-down run stop build-push
 
 # Apply all migrations
 migrate-up:
@@ -50,6 +50,11 @@ run:
 
 stop:
 	docker compose down
+
+build-push:
+	docker image rm nathakusuma/astungkara:latest
+	docker build -t nathakusuma/astungkara:latest .
+	docker push nathakusuma/astungkara:latest
 
 # Catch the environment argument
 %:

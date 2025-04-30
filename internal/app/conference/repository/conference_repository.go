@@ -55,13 +55,19 @@ func (r *conferenceRepository) GetConferenceByID(ctx context.Context, id uuid.UU
 	var row dto.ConferenceJoinUserRow
 
 	statement := `SELECT
-			c.id, c.title, c.description, c.speaker_name, c.speaker_title,
-			c.target_audience, c.prerequisites, c.seats, c.starts_at, c.ends_at,
-			c.host_id, c.status, c.created_at, c.updated_at, u.name AS host_name
-		FROM conferences c
-		JOIN users u ON c.host_id = u.id
-		WHERE c.id = $1
-		AND c.deleted_at IS NULL
+						c.id, c.title, c.description, c.speaker_name, c.speaker_title,
+						c.target_audience, c.prerequisites, c.seats, c.starts_at, c.ends_at,
+						c.host_id, c.status, c.created_at, c.updated_at, u.name AS host_name,
+						COUNT(r.user_id) AS registration_count
+					FROM conferences c
+					JOIN users u ON c.host_id = u.id
+					LEFT JOIN registrations r ON c.id = r.conference_id
+					WHERE c.id = $1
+					AND c.deleted_at IS NULL
+					GROUP BY
+						c.id, c.title, c.description, c.speaker_name, c.speaker_title,
+						c.target_audience, c.prerequisites, c.seats, c.starts_at, c.ends_at,
+						c.host_id, c.status, c.created_at, c.updated_at, u.name
 		`
 
 	err := r.db.GetContext(ctx, &row, statement, id)
@@ -80,10 +86,12 @@ func (r *conferenceRepository) GetConferences(ctx context.Context,
 	baseQuery := `
         SELECT
             c.id, c.title, c.description, c.speaker_name, c.speaker_title,
-			c.target_audience, c.prerequisites, c.seats, c.starts_at, c.ends_at,
-			c.host_id, c.status, c.created_at, c.updated_at, u.name AS host_name
+            c.target_audience, c.prerequisites, c.seats, c.starts_at, c.ends_at,
+            c.host_id, c.status, c.created_at, c.updated_at, u.name AS host_name,
+            COUNT(r.user_id) AS registration_count
         FROM conferences c
-		JOIN users u ON c.host_id = u.id
+        JOIN users u ON c.host_id = u.id
+        LEFT JOIN registrations r ON c.id = r.conference_id
         WHERE c.deleted_at IS NULL`
 
 	// Initialize query arguments
@@ -179,6 +187,13 @@ func (r *conferenceRepository) GetConferences(ctx context.Context,
 	if len(conditions) > 0 {
 		baseQuery += " AND " + strings.Join(conditions, " AND ")
 	}
+
+	// Add GROUP BY clause before ORDER BY
+	baseQuery += `
+        GROUP BY
+            c.id, c.title, c.description, c.speaker_name, c.speaker_title,
+            c.target_audience, c.prerequisites, c.seats, c.starts_at, c.ends_at,
+            c.host_id, c.status, c.created_at, c.updated_at, u.name`
 
 	// Add ORDER BY clause
 	if query.OrderBy == "c.created_at" {

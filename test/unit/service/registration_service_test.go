@@ -686,3 +686,50 @@ func Test_RegistrationService_GetRegisteredConferencesByUser(t *testing.T) {
 		assert.Empty(t, resultLazy)
 	})
 }
+
+func Test_RegistrationService_IsUserRegisteredToConference(t *testing.T) {
+	conferenceID := uuid.New()
+	userID := uuid.New()
+
+	t.Run("success - registered", func(t *testing.T) {
+		svc, mocks := setupRegistrationServiceTest(t)
+
+		ctx := context.Background()
+
+		mocks.registrationRepo.EXPECT().
+			IsUserRegisteredToConference(ctx, conferenceID, userID).
+			Return(true, nil)
+
+		ok, err := svc.IsUserRegisteredToConference(ctx, conferenceID, userID)
+		assert.NoError(t, err)
+		assert.True(t, ok)
+	})
+
+	t.Run("success - not registered", func(t *testing.T) {
+		svc, mocks := setupRegistrationServiceTest(t)
+
+		ctx := context.Background()
+
+		mocks.registrationRepo.EXPECT().
+			IsUserRegisteredToConference(ctx, conferenceID, userID).
+			Return(false, nil)
+
+		ok, err := svc.IsUserRegisteredToConference(ctx, conferenceID, userID)
+		assert.NoError(t, err)
+		assert.False(t, ok)
+	})
+
+	t.Run("error - internal server error", func(t *testing.T) {
+		svc, mocks := setupRegistrationServiceTest(t)
+
+		ctx := context.Background()
+
+		mocks.registrationRepo.EXPECT().
+			IsUserRegisteredToConference(ctx, conferenceID, userID).
+			Return(false, errorpkg.ErrInternalServer)
+
+		ok, err := svc.IsUserRegisteredToConference(ctx, conferenceID, userID)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+		assert.False(t, ok)
+	})
+}

@@ -2,7 +2,6 @@ package server
 
 import (
 	"github.com/bytedance/sonic"
-	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
 	authhnd "github.com/nathakusuma/astungkara/internal/app/auth/handler"
 	authrepo "github.com/nathakusuma/astungkara/internal/app/auth/repository"
@@ -27,7 +26,6 @@ import (
 	"github.com/nathakusuma/astungkara/pkg/mail"
 	"github.com/nathakusuma/astungkara/pkg/uuidpkg"
 	"github.com/nathakusuma/astungkara/pkg/validator"
-	"github.com/redis/go-redis/v9"
 )
 
 type HttpServer interface {
@@ -91,7 +89,7 @@ func (s *httpServer) MountRoutes(db *sqlx.DB, rds *redis.Client) {
 	middlewareInstance := middleware.NewMiddleware(jwtAccess)
 
 	s.app.Get("/", func(ctx *fiber.Ctx) error {
-		return ctx.Status(fiber.StatusOK).SendString("Astungkara Healthy")
+		return ctx.Status(fiber.StatusOK).SendString("Healthy")
 	})
 
 	api := s.app.Group("/api")

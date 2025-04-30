@@ -1,3 +1,4 @@
+DROP EXTENSION IF EXISTS pgcrypto;
 CREATE EXTENSION pgcrypto SCHEMA public;
 
 CREATE OR REPLACE FUNCTION generate_ulid_at_time(target_time TIMESTAMP WITH TIME ZONE)

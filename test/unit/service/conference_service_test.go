@@ -602,6 +602,28 @@ func Test_ConferenceService_GetConferences(t *testing.T) {
 		assert.Len(t, result, 1)
 	})
 
+	t.Run("error - pagination includes beforeID and afterID", func(t *testing.T) {
+		svc, mocks := setupConferenceServiceTest(t)
+
+		ctx = context.WithValue(ctx, "user.id", userID)
+		ctx = context.WithValue(ctx, "user.role", enum.RoleUser)
+
+		query := &dto.GetConferenceQuery{
+			Limit:    10,
+			Status:   enum.ConferenceApproved,
+			BeforeID: &uuid.Nil,
+			AfterID:  &uuid.Nil,
+		}
+
+		result, lazy, err := svc.GetConferences(ctx, query)
+		assert.ErrorIs(t, err, errorpkg.ErrInvalidPagination)
+		assert.Empty(t, result)
+		assert.Equal(t, dto.LazyLoadResponse{}, lazy)
+
+		// Verify that the repository was not called
+		mocks.conferenceRepo.AssertNotCalled(t, "GetConferences")
+	})
+
 	t.Run("error - user trying to view other's pending conferences", func(t *testing.T) {
 		svc, mocks := setupConferenceServiceTest(t)
 

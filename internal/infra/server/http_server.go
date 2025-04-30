@@ -10,6 +10,9 @@ import (
 	conferencehnd "github.com/nathakusuma/astungkara/internal/app/conference/handler"
 	conferencerepo "github.com/nathakusuma/astungkara/internal/app/conference/repository"
 	conferencesvc "github.com/nathakusuma/astungkara/internal/app/conference/service"
+	feedbackhnd "github.com/nathakusuma/astungkara/internal/app/feedback/handler"
+	feedbackrepo "github.com/nathakusuma/astungkara/internal/app/feedback/repository"
+	feedbacksvc "github.com/nathakusuma/astungkara/internal/app/feedback/service"
 	registrationhnd "github.com/nathakusuma/astungkara/internal/app/registration/handler"
 	registrationrepo "github.com/nathakusuma/astungkara/internal/app/registration/repository"
 	registrationsvc "github.com/nathakusuma/astungkara/internal/app/registration/service"
@@ -98,14 +101,18 @@ func (s *httpServer) MountRoutes(db *sqlx.DB, rds *redis.Client) {
 	authRepository := authrepo.NewAuthRepository(db, rds)
 	conferenceRepository := conferencerepo.NewConferenceRepository(db)
 	registrationRepository := registrationrepo.NewRegistrationRepository(db)
+	feedbackRepository := feedbackrepo.NewFeedbackRepository(db)
 
 	userService := usersvc.NewUserService(userRepository, bcryptInstance, uuidInstance)
 	authService := authsvc.NewAuthService(authRepository, userService, bcryptInstance, jwtAccess, mailer, uuidInstance)
 	conferenceService := conferencesvc.NewConferenceService(conferenceRepository, uuidInstance)
 	registrationService := registrationsvc.NewRegistrationService(registrationRepository, conferenceService)
+	feedbackService := feedbacksvc.NewFeedbackService(feedbackRepository, registrationService, conferenceService,
+		uuidInstance)
 
 	userhnd.InitUserHandler(v1, middlewareInstance, validatorInstance, userService)
 	authhnd.InitAuthHandler(v1, middlewareInstance, validatorInstance, authService)
 	conferencehnd.InitConferenceHandler(v1, middlewareInstance, validatorInstance, conferenceService)
 	registrationhnd.InitRegistrationHandler(v1, middlewareInstance, validatorInstance, registrationService)
+	feedbackhnd.InitFeedbackHandler(v1, middlewareInstance, validatorInstance, feedbackService)
 }

@@ -61,6 +61,11 @@ func Test_FeedbackService_CreateFeedback(t *testing.T) {
 			IsUserRegisteredToConference(ctx, conferenceID, userID).
 			Return(true, nil)
 
+		// Mock IsFeedbackGiven
+		mocks.feedbackRepo.EXPECT().
+			IsFeedbackGiven(ctx, userID, conferenceID).
+			Return(false, nil)
+
 		// Mock getting conference
 		mocks.conferenceSvc.EXPECT().
 			GetConferenceByID(ctx, conferenceID).
@@ -116,12 +121,51 @@ func Test_FeedbackService_CreateFeedback(t *testing.T) {
 		assert.Equal(t, uuid.Nil, id)
 	})
 
+	t.Run("error - feedback already given", func(t *testing.T) {
+		svc, mocks := setupFeedbackServiceTest(t)
+
+		mocks.registrationSvc.EXPECT().
+			IsUserRegisteredToConference(ctx, conferenceID, userID).
+			Return(true, nil)
+
+		// Mock IsFeedbackGiven
+		mocks.feedbackRepo.EXPECT().
+			IsFeedbackGiven(ctx, userID, conferenceID).
+			Return(true, nil)
+
+		id, err := svc.CreateFeedback(ctx, userID, conferenceID, comment)
+		assert.ErrorIs(t, err, errorpkg.ErrFeedbackAlreadyGiven)
+		assert.Equal(t, uuid.Nil, id)
+	})
+
+	t.Run("error - IsFeedbackGiven failed", func(t *testing.T) {
+		svc, mocks := setupFeedbackServiceTest(t)
+
+		mocks.registrationSvc.EXPECT().
+			IsUserRegisteredToConference(ctx, conferenceID, userID).
+			Return(true, nil)
+
+		// Mock IsFeedbackGiven
+		mocks.feedbackRepo.EXPECT().
+			IsFeedbackGiven(ctx, userID, conferenceID).
+			Return(false, errorpkg.ErrInternalServer)
+
+		id, err := svc.CreateFeedback(ctx, userID, conferenceID, comment)
+		assert.ErrorIs(t, err, errorpkg.ErrInternalServer)
+		assert.Equal(t, uuid.Nil, id)
+	})
+
 	t.Run("error - conference not found", func(t *testing.T) {
 		svc, mocks := setupFeedbackServiceTest(t)
 
 		mocks.registrationSvc.EXPECT().
 			IsUserRegisteredToConference(ctx, conferenceID, userID).
 			Return(true, nil)
+
+		// Mock IsFeedbackGiven
+		mocks.feedbackRepo.EXPECT().
+			IsFeedbackGiven(ctx, userID, conferenceID).
+			Return(false, nil)
 
 		mocks.conferenceSvc.EXPECT().
 			GetConferenceByID(ctx, conferenceID).
@@ -138,6 +182,11 @@ func Test_FeedbackService_CreateFeedback(t *testing.T) {
 		mocks.registrationSvc.EXPECT().
 			IsUserRegisteredToConference(ctx, conferenceID, userID).
 			Return(true, nil)
+
+		// Mock IsFeedbackGiven
+		mocks.feedbackRepo.EXPECT().
+			IsFeedbackGiven(ctx, userID, conferenceID).
+			Return(false, nil)
 
 		mocks.conferenceSvc.EXPECT().
 			GetConferenceByID(ctx, conferenceID).
@@ -162,6 +211,11 @@ func Test_FeedbackService_CreateFeedback(t *testing.T) {
 			IsUserRegisteredToConference(ctx, conferenceID, userID).
 			Return(true, nil)
 
+		// Mock IsFeedbackGiven
+		mocks.feedbackRepo.EXPECT().
+			IsFeedbackGiven(ctx, userID, conferenceID).
+			Return(false, nil)
+
 		mocks.conferenceSvc.EXPECT().
 			GetConferenceByID(ctx, conferenceID).
 			Return(&dto.ConferenceResponse{
@@ -183,6 +237,11 @@ func Test_FeedbackService_CreateFeedback(t *testing.T) {
 		mocks.registrationSvc.EXPECT().
 			IsUserRegisteredToConference(ctx, conferenceID, userID).
 			Return(true, nil)
+
+		// Mock IsFeedbackGiven
+		mocks.feedbackRepo.EXPECT().
+			IsFeedbackGiven(ctx, userID, conferenceID).
+			Return(false, nil)
 
 		mocks.conferenceSvc.EXPECT().
 			GetConferenceByID(ctx, conferenceID).
@@ -209,6 +268,11 @@ func Test_FeedbackService_CreateFeedback(t *testing.T) {
 		mocks.registrationSvc.EXPECT().
 			IsUserRegisteredToConference(ctx, conferenceID, userID).
 			Return(true, nil)
+
+		// Mock IsFeedbackGiven
+		mocks.feedbackRepo.EXPECT().
+			IsFeedbackGiven(ctx, userID, conferenceID).
+			Return(false, nil)
 
 		mocks.conferenceSvc.EXPECT().
 			GetConferenceByID(ctx, conferenceID).

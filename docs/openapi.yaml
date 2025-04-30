@@ -1832,13 +1832,36 @@ paths:
                   value:
                     message: "Host is not allowed to give feedback to their own conference."
                     error_code: "HOST_CANNOT_GIVE_FEEDBACK"
+        '422':
+          description: Validation or business rule error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                NewExample:
+                  description: New example
+                  :
+                validationError:
+                  summary: Validation Error
+                  value:
+                    message: "There are invalid fields in your request. Please check and try again"
+                    detail:
+                      - comment:
+                          tag: "required"
+                          param: ""
+                          translation: "Comment is a required field"
+                    error_code: "VALIDATION_ERROR"
                 notEnded:
                   summary: Conference not ended
                   value:
                     message: "Conference has not ended yet. You're not allowed to give feedback."
                     error_code: "CONFERENCE_NOT_ENDED"
-        '422':
-          $ref: '#/components/responses/ValidationError'
+                feedbackAlreadyGiven:
+                  summary: Feedback already given
+                  value:
+                    message: "You already gave feedback to this conference."
+                    error_code: "FEEDBACK_ALREADY_GIVEN"
         '500':
           $ref: '#/components/responses/InternalServerError'
 

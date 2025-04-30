@@ -163,3 +163,21 @@ func (r *feedbackRepository) deleteFeedback(ctx context.Context, tx sqlx.ExtCont
 func (r *feedbackRepository) DeleteFeedback(ctx context.Context, id uuid.UUID) error {
 	return r.deleteFeedback(ctx, r.db, id)
 }
+
+func (r *feedbackRepository) IsFeedbackGiven(ctx context.Context, userID, conferenceID uuid.UUID) (bool, error) {
+	var exists bool
+	if err := r.db.GetContext(
+		ctx,
+		&exists,
+		`SELECT EXISTS (
+				SELECT 1 FROM feedbacks
+				WHERE conference_id = $1
+				AND user_id = $2
+			)`,
+		conferenceID, userID,
+	); err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}

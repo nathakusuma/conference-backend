@@ -17,7 +17,7 @@ var (
 		WithErrorCode("CONFERENCE_FULL").
 		WithMessage("Conference is full. You're not allowed to register anymore.")
 
-	ErrConferenceNotEnded = NewError(http.StatusForbidden).
+	ErrConferenceNotEnded = NewError(http.StatusUnprocessableEntity).
 		WithErrorCode("CONFERENCE_NOT_ENDED").
 		WithMessage("Conference has not ended yet. You're not allowed to give feedback.")
 
@@ -40,6 +40,10 @@ var (
 	ErrFailParseRequest = NewError(http.StatusBadRequest).
 		WithErrorCode("FAIL_PARSE_REQUEST").
 		WithMessage("Failed to parse request. Please check your request format.")
+
+	ErrFeedbackAlreadyGiven = NewError(http.StatusConflict).
+		WithErrorCode("FEEDBACK_ALREADY_GIVEN").
+		WithMessage("You already gave feedback to this conference.")
 
 	ErrForbiddenRole = NewError(http.StatusForbidden).
 		WithErrorCode("FORBIDDEN_ROLE").
@@ -89,17 +93,13 @@ var (
 		WithErrorCode("TIME_WINDOW_CONFLICT").
 		WithMessage("There's already a conference in the same time window. Please choose another time window.")
 
-	ErrUpdateApprovedTimeWindow = NewError(http.StatusUnprocessableEntity).
-		WithErrorCode("UPDATE_APPROVED_TIME_WINDOW").
-		WithMessage("You're not allowed to update an approved conference time window.")
-
 	ErrUpdatePastConference = NewError(http.StatusUnprocessableEntity).
 		WithErrorCode("UPDATE_PAST_CONFERENCE").
 		WithMessage("You're not allowed to update a past conference.")
 
-	ErrUpdateRejectedConference = NewError(http.StatusUnprocessableEntity).
-		WithErrorCode("UPDATE_REJECTED_CONFERENCE").
-		WithMessage("You're not allowed to update a rejected conference.")
+	ErrUpdateNotPendingConference = NewError(http.StatusUnprocessableEntity).
+		WithErrorCode("UPDATE_NOT_PENDING_CONFERENCE").
+		WithMessage("You're not allowed to update a conference that is not pending.")
 
 	ErrUpdatePastConferenceStatus = NewError(http.StatusUnprocessableEntity).
 		WithErrorCode("UPDATE_PAST_CONFERENCE_STATUS").

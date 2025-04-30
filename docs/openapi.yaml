@@ -1327,11 +1327,11 @@ paths:
                   value:
                     message: "You're not allowed to update an approved conference time window."
                     error_code: "UPDATE_APPROVED_TIME_WINDOW"
-                updateRejectedConference:
-                  summary: Update Rejected Conference
+                updateNotPendingConference:
+                  summary: Update Not Pending Conference
                   value:
-                    message: "You're not allowed to update a rejected conference."
-                    error_code: "UPDATE_REJECTED_CONFERENCE"
+                    message: "You're not allowed to update a conference that is not pending"
+                    error_code: "UPDATE_NOT_PENDING_CONFERENCE"
                 timeAlreadyPassed:
                   summary: Time Already Passed
                   value:
@@ -1477,6 +1477,11 @@ paths:
                   value:
                     message: "You're only allowed to change past conference status from pending to rejected."
                     error_code: "UPDATE_PAST_CONFERENCE_STATUS"
+                updateNotPendingConference:
+                  summary: Update Not Pending Conference
+                  value:
+                    message: "You're not allowed to update a conference that is not pending"
+                    error_code: "UPDATE_NOT_PENDING_CONFERENCE"
         '500':
           $ref: '#/components/responses/InternalServerError'
 

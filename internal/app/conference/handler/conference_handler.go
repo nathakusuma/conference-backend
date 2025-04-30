@@ -37,11 +37,9 @@ func InitConferenceHandler(
 		handler.createConferenceProposal(),
 	)
 	conferenceGroup.Get("/:id",
-		midw.RequireOneOfRoles(enum.RoleUser, enum.RoleEventCoordinator),
 		handler.getConferenceByID(),
 	)
 	conferenceGroup.Get("",
-		midw.RequireOneOfRoles(enum.RoleUser, enum.RoleEventCoordinator),
 		handler.getConferences(),
 	)
 	conferenceGroup.Patch("/:id",

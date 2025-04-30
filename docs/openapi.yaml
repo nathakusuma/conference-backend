@@ -306,6 +306,8 @@ tags:
     description: User management operations
   - name: Conferences
     description: Conference management operations
+  - name: Registrations
+    description: Conference registration operations
 
 paths:
   /auth/register/otp:
@@ -1447,5 +1449,292 @@ paths:
                   value:
                     message: "You're only allowed to change past conference status from pending to rejected."
                     error_code: "UPDATE_PAST_CONFERENCE_STATUS"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /registrations:
+    post:
+      tags:
+        - Registrations
+      summary: Register for a conference
+      description: Register for a conference. Available to users with user role.
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - conference_id
+              properties:
+                conference_id:
+                  type: string
+                  format: uuid
+                  example: "0194890f-f8d4-406c-804d-1c007a44e144"
+      responses:
+        '200':
+          description: Successfully registered for conference
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notRoleUser:
+                  summary: Not Role User
+                  value:
+                    message: "You're not allowed to access this resource."
+                    error_code: "FORBIDDEN_ROLE"
+                hostRegisterOwn:
+                  summary: Host Register Own Conference
+                  value:
+                    message: "You're not allowed to register to your own conference."
+                    error_code: "HOST_CANNOT_REGISTER"
+                conferenceNotApproved:
+                  summary: Conference Not Approved
+                  value:
+                    message: "You're not allowed to access this resource."
+                    error_code: "FORBIDDEN_USER"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                alreadyRegistered:
+                  summary: Already Registered
+                  value:
+                    message: "You're already registered to this conference."
+                    error_code: "USER_ALREADY_REGISTERED_TO_CONFERENCE"
+                fullSeat:
+                  summary: Full Seat
+                  value:
+                    message: "Conference is full. You're not allowed to register anymore."
+                    error_code: "CONFERENCE_FULL"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                conferenceEnded:
+                  summary: Conference Ended
+                  value:
+                    message: "Conference has ended. You're not allowed to register anymore."
+                    error_code: "CONFERENCE_ENDED"
+                validation:
+                  summary: Validation Error
+                  value:
+                    message: "There are invalid fields in your request. Please check and try again"
+                    detail:
+                      - conference_id:
+                          tag: "required"
+                          param: ""
+                          translation: "ConferenceID is a required field"
+                    error_code: "VALIDATION_ERROR"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /registrations/conferences/{id}:
+    get:
+      tags:
+        - Registrations
+      summary: Get registered users for a conference
+      description: Get registered users for a conference. Available to all roles. For users with user role, only their hosted conferences are allowed.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "01945590-60d4-4062-80a2-2effbfa127fe"
+        - name: limit
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+          example: 10
+        - name: after_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: before_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successfully retrieved registered users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+              example:
+                users:
+                  - id: "019412d4-a354-4068-809e-6545dcf6aca7"
+                    name: "User 2"
+                  - id: "0194130b-91d4-4095-80e2-5af8f28930e0"
+                    name: "User 3"
+                pagination:
+                  has_more: false
+                  first_id: "019412d4-a354-4068-809e-6545dcf6aca7"
+                  last_id: "0194130b-91d4-4095-80e2-5af8f28930e0"
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validation:
+                  summary: Validation Error
+                  value:
+                    message: "There are invalid fields in your request. Please check and try again"
+                    detail:
+                      - limit:
+                          tag: "required"
+                          param: ""
+                          translation: "Limit is a required field"
+                    error_code: "VALIDATION_ERROR"
+                invalidPagination:
+                  summary: Invalid Pagination
+                  value:
+                    message: "Cannot use after_id and before_id at the same time."
+                    error_code: "INVALID_PAGINATION"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /registrations/users/{id}:
+    get:
+      tags:
+        - Registrations
+      summary: Get registered conferences for a user
+      description: Get registered conferences for a user. Available to all roles. For users with user role, only their own id is allowed.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "019412d4-a354-4068-809e-6545dcf6aca9"
+        - name: limit
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+          example: 10
+        - name: include_past
+          in: query
+          required: false
+          schema:
+            type: boolean
+          example: true
+        - name: after_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: before_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successfully retrieved registered conferences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conferences:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Conference'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/responses/FailParseRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "You're not allowed to access this resource."
+                error_code: "FORBIDDEN_USER"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validation:
+                  summary: Validation Error
+                  value:
+                    message: "There are invalid fields in your request. Please check and try again"
+                    detail:
+                      - limit:
+                          tag: "required"
+                          param: ""
+                          translation: "Limit is a required field"
+                    error_code: "VALIDATION_ERROR"
+                invalidPagination:
+                  summary: Invalid Pagination
+                  value:
+                    message: "Cannot use after_id and before_id at the same time."
+                    error_code: "INVALID_PAGINATION"
         '500':
           $ref: '#/components/responses/InternalServerError'

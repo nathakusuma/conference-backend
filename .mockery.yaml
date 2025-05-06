@@ -5,35 +5,35 @@ outpkg: mocks
 all: true
 
 packages:
-  github.com/nathakusuma/astungkara/domain/contract:
+  github.com/nathakusuma/conference-backend/domain/contract:
     interfaces:
       include: ["*"]
     config:
       filename: "{{.InterfaceName}}_mock.go"
       dir: "test/unit/mocks/app"
 
-  github.com/nathakusuma/astungkara/pkg/bcrypt:
+  github.com/nathakusuma/conference-backend/pkg/bcrypt:
     interfaces:
       include: ["*"]
     config:
       filename: "{{.InterfaceName}}_mock.go"
       dir: "test/unit/mocks/pkg"
 
-  github.com/nathakusuma/astungkara/pkg/jwt:
+  github.com/nathakusuma/conference-backend/pkg/jwt:
     interfaces:
       include: [ "*" ]
     config:
       filename: "{{.InterfaceName}}_mock.go"
       dir: "test/unit/mocks/pkg"
 
-  github.com/nathakusuma/astungkara/pkg/mail:
+  github.com/nathakusuma/conference-backend/pkg/mail:
     interfaces:
       include: [ "*" ]
     config:
       filename: "{{.InterfaceName}}_mock.go"
       dir: "test/unit/mocks/pkg"
 
-  github.com/nathakusuma/astungkara/pkg/uuidpkg:
+  github.com/nathakusuma/conference-backend/pkg/uuidpkg:
     interfaces:
       include: ["*"]
     config:

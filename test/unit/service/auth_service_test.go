@@ -5,15 +5,15 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/google/uuid"
-	"github.com/nathakusuma/astungkara/domain/contract"
-	"github.com/nathakusuma/astungkara/domain/dto"
-	"github.com/nathakusuma/astungkara/domain/entity"
-	"github.com/nathakusuma/astungkara/domain/enum"
-	"github.com/nathakusuma/astungkara/domain/errorpkg"
-	"github.com/nathakusuma/astungkara/internal/app/auth/service"
-	appmocks "github.com/nathakusuma/astungkara/test/unit/mocks/app"
-	pkgmocks "github.com/nathakusuma/astungkara/test/unit/mocks/pkg"
-	_ "github.com/nathakusuma/astungkara/test/unit/setup"
+	"github.com/nathakusuma/conference-backend/domain/contract"
+	"github.com/nathakusuma/conference-backend/domain/dto"
+	"github.com/nathakusuma/conference-backend/domain/entity"
+	"github.com/nathakusuma/conference-backend/domain/enum"
+	"github.com/nathakusuma/conference-backend/domain/errorpkg"
+	"github.com/nathakusuma/conference-backend/internal/app/auth/service"
+	appmocks "github.com/nathakusuma/conference-backend/test/unit/mocks/app"
+	pkgmocks "github.com/nathakusuma/conference-backend/test/unit/mocks/pkg"
+	_ "github.com/nathakusuma/conference-backend/test/unit/setup"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -67,7 +67,7 @@ func Test_AuthService_RequestOTPRegisterUser(t *testing.T) {
 		mocks.mailer.EXPECT().
 			Send(
 				email,
-				"[Astungkara] Verify Your Account",
+				"[Conference App] Verify Your Account",
 				"otp_register_user.html",
 				mock.AnythingOfType("map[string]interface {}"),
 			).RunAndReturn(func(_, _, _ string, _ map[string]interface{}) error {
@@ -100,7 +100,7 @@ func Test_AuthService_RequestOTPRegisterUser(t *testing.T) {
 		mocks.mailer.EXPECT().
 			Send(
 				email,
-				"[Astungkara] Verify Your Account",
+				"[Conference App] Verify Your Account",
 				"otp_register_user.html",
 				mock.AnythingOfType("map[string]interface {}"),
 			).RunAndReturn(func(_, _, _ string, _ map[string]interface{}) error {
@@ -792,7 +792,7 @@ func Test_AuthService_RequestOTPResetPassword(t *testing.T) {
 		mocks.mailer.EXPECT().
 			Send(
 				email,
-				"[Astungkara] Reset Password",
+				"[Conference App] Reset Password",
 				"otp_reset_password.html",
 				mock.AnythingOfType("map[string]interface {}"),
 			).RunAndReturn(func(_, _, _ string, _ map[string]interface{}) error {
@@ -862,7 +862,7 @@ func Test_AuthService_RequestOTPResetPassword(t *testing.T) {
 		mocks.mailer.EXPECT().
 			Send(
 				email,
-				"[Astungkara] Reset Password",
+				"[Conference App] Reset Password",
 				"otp_reset_password.html",
 				mock.AnythingOfType("map[string]interface {}"),
 			).RunAndReturn(func(_, _, _ string, _ map[string]interface{}) error {

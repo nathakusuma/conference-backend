@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/nathakusuma/astungkara/domain/contract"
-	"github.com/nathakusuma/astungkara/domain/dto"
-	"github.com/nathakusuma/astungkara/domain/entity"
-	"github.com/nathakusuma/astungkara/domain/errorpkg"
-	"github.com/nathakusuma/astungkara/pkg/log"
-	"github.com/nathakusuma/astungkara/pkg/uuidpkg"
+	"github.com/nathakusuma/conference-backend/domain/contract"
+	"github.com/nathakusuma/conference-backend/domain/dto"
+	"github.com/nathakusuma/conference-backend/domain/entity"
+	"github.com/nathakusuma/conference-backend/domain/errorpkg"
+	"github.com/nathakusuma/conference-backend/pkg/log"
+	"github.com/nathakusuma/conference-backend/pkg/uuidpkg"
 )
 
 type feedbackService struct {

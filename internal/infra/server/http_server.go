@@ -2,30 +2,33 @@ package server
 
 import (
 	"github.com/bytedance/sonic"
+	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
-	authhnd "github.com/nathakusuma/astungkara/internal/app/auth/handler"
-	authrepo "github.com/nathakusuma/astungkara/internal/app/auth/repository"
-	authsvc "github.com/nathakusuma/astungkara/internal/app/auth/service"
-	conferencehnd "github.com/nathakusuma/astungkara/internal/app/conference/handler"
-	conferencerepo "github.com/nathakusuma/astungkara/internal/app/conference/repository"
-	conferencesvc "github.com/nathakusuma/astungkara/internal/app/conference/service"
-	feedbackhnd "github.com/nathakusuma/astungkara/internal/app/feedback/handler"
-	feedbackrepo "github.com/nathakusuma/astungkara/internal/app/feedback/repository"
-	feedbacksvc "github.com/nathakusuma/astungkara/internal/app/feedback/service"
-	registrationhnd "github.com/nathakusuma/astungkara/internal/app/registration/handler"
-	registrationrepo "github.com/nathakusuma/astungkara/internal/app/registration/repository"
-	registrationsvc "github.com/nathakusuma/astungkara/internal/app/registration/service"
-	userhnd "github.com/nathakusuma/astungkara/internal/app/user/handler"
-	userrepo "github.com/nathakusuma/astungkara/internal/app/user/repository"
-	usersvc "github.com/nathakusuma/astungkara/internal/app/user/service"
-	"github.com/nathakusuma/astungkara/internal/infra/env"
-	"github.com/nathakusuma/astungkara/internal/middleware"
-	"github.com/nathakusuma/astungkara/pkg/bcrypt"
-	"github.com/nathakusuma/astungkara/pkg/jwt"
-	"github.com/nathakusuma/astungkara/pkg/log"
-	"github.com/nathakusuma/astungkara/pkg/mail"
-	"github.com/nathakusuma/astungkara/pkg/uuidpkg"
-	"github.com/nathakusuma/astungkara/pkg/validator"
+	"github.com/redis/go-redis/v9"
+
+	authhnd "github.com/nathakusuma/conference-backend/internal/app/auth/handler"
+	authrepo "github.com/nathakusuma/conference-backend/internal/app/auth/repository"
+	authsvc "github.com/nathakusuma/conference-backend/internal/app/auth/service"
+	conferencehnd "github.com/nathakusuma/conference-backend/internal/app/conference/handler"
+	conferencerepo "github.com/nathakusuma/conference-backend/internal/app/conference/repository"
+	conferencesvc "github.com/nathakusuma/conference-backend/internal/app/conference/service"
+	feedbackhnd "github.com/nathakusuma/conference-backend/internal/app/feedback/handler"
+	feedbackrepo "github.com/nathakusuma/conference-backend/internal/app/feedback/repository"
+	feedbacksvc "github.com/nathakusuma/conference-backend/internal/app/feedback/service"
+	registrationhnd "github.com/nathakusuma/conference-backend/internal/app/registration/handler"
+	registrationrepo "github.com/nathakusuma/conference-backend/internal/app/registration/repository"
+	registrationsvc "github.com/nathakusuma/conference-backend/internal/app/registration/service"
+	userhnd "github.com/nathakusuma/conference-backend/internal/app/user/handler"
+	userrepo "github.com/nathakusuma/conference-backend/internal/app/user/repository"
+	usersvc "github.com/nathakusuma/conference-backend/internal/app/user/service"
+	"github.com/nathakusuma/conference-backend/internal/infra/env"
+	"github.com/nathakusuma/conference-backend/internal/middleware"
+	"github.com/nathakusuma/conference-backend/pkg/bcrypt"
+	"github.com/nathakusuma/conference-backend/pkg/jwt"
+	"github.com/nathakusuma/conference-backend/pkg/log"
+	"github.com/nathakusuma/conference-backend/pkg/mail"
+	"github.com/nathakusuma/conference-backend/pkg/uuidpkg"
+	"github.com/nathakusuma/conference-backend/pkg/validator"
 )
 
 type HttpServer interface {
@@ -41,7 +44,7 @@ type httpServer struct {
 
 func NewHttpServer() HttpServer {
 	config := fiber.Config{
-		AppName:      "Astungkara",
+		AppName:      "Conference App",
 		JSONEncoder:  sonic.Marshal,
 		JSONDecoder:  sonic.Unmarshal,
 		ErrorHandler: ErrorHandler(),

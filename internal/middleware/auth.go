@@ -2,13 +2,13 @@ package middleware
 
 import (
 	"github.com/google/uuid"
-	"github.com/nathakusuma/astungkara/domain/enum"
-	"github.com/nathakusuma/astungkara/domain/errorpkg"
+	"github.com/nathakusuma/conference-backend/domain/enum"
+	"github.com/nathakusuma/conference-backend/domain/errorpkg"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/nathakusuma/astungkara/pkg/jwt"
+	"github.com/nathakusuma/conference-backend/pkg/jwt"
 )
 
 func (m *Middleware) RequireAuthenticated() fiber.Handler {

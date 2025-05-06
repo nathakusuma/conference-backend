@@ -3,8 +3,8 @@
 package mocks
 
 import (
-	enum "github.com/nathakusuma/astungkara/domain/enum"
-	jwt "github.com/nathakusuma/astungkara/pkg/jwt"
+	enum "github.com/nathakusuma/conference-backend/domain/enum"
+	jwt "github.com/nathakusuma/conference-backend/pkg/jwt"
 
 	mock "github.com/stretchr/testify/mock"
 

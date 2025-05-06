@@ -3,18 +3,18 @@ package service
 import (
 	"context"
 	"database/sql"
-	"github.com/nathakusuma/astungkara/internal/app/feedback/service"
+	"github.com/nathakusuma/conference-backend/internal/app/feedback/service"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/nathakusuma/astungkara/domain/contract"
-	"github.com/nathakusuma/astungkara/domain/dto"
-	"github.com/nathakusuma/astungkara/domain/entity"
-	"github.com/nathakusuma/astungkara/domain/errorpkg"
-	appmocks "github.com/nathakusuma/astungkara/test/unit/mocks/app"
-	pkgmocks "github.com/nathakusuma/astungkara/test/unit/mocks/pkg"
-	_ "github.com/nathakusuma/astungkara/test/unit/setup"
+	"github.com/nathakusuma/conference-backend/domain/contract"
+	"github.com/nathakusuma/conference-backend/domain/dto"
+	"github.com/nathakusuma/conference-backend/domain/entity"
+	"github.com/nathakusuma/conference-backend/domain/errorpkg"
+	appmocks "github.com/nathakusuma/conference-backend/test/unit/mocks/app"
+	pkgmocks "github.com/nathakusuma/conference-backend/test/unit/mocks/pkg"
+	_ "github.com/nathakusuma/conference-backend/test/unit/setup"
 	"github.com/stretchr/testify/assert"
 )
 

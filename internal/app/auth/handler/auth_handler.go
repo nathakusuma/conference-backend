@@ -2,11 +2,11 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/nathakusuma/astungkara/domain/contract"
-	"github.com/nathakusuma/astungkara/domain/dto"
-	"github.com/nathakusuma/astungkara/domain/errorpkg"
-	"github.com/nathakusuma/astungkara/internal/middleware"
-	"github.com/nathakusuma/astungkara/pkg/validator"
+	"github.com/nathakusuma/conference-backend/domain/contract"
+	"github.com/nathakusuma/conference-backend/domain/dto"
+	"github.com/nathakusuma/conference-backend/domain/errorpkg"
+	"github.com/nathakusuma/conference-backend/internal/middleware"
+	"github.com/nathakusuma/conference-backend/pkg/validator"
 	"net/http"
 )
 

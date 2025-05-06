@@ -3,9 +3,9 @@ package mail
 import (
 	"bytes"
 	"fmt"
-	"github.com/nathakusuma/astungkara/internal/infra/env"
-	"github.com/nathakusuma/astungkara/internal/mailtmpl"
-	"github.com/nathakusuma/astungkara/pkg/log"
+	"github.com/nathakusuma/conference-backend/internal/infra/env"
+	"github.com/nathakusuma/conference-backend/internal/mailtmpl"
+	"github.com/nathakusuma/conference-backend/pkg/log"
 	"gopkg.in/gomail.v2"
 	"html/template"
 	"sync"
@@ -59,7 +59,7 @@ func (m *mailer) Send(recipientEmail, subject, templateName string, data map[str
 	}
 
 	mail := gomail.NewMessage()
-	mail.SetHeader("From", "Astungkara <"+env.GetEnv().SmtpEmail+">")
+	mail.SetHeader("From", "Conference App <"+env.GetEnv().SmtpEmail+">")
 	mail.SetHeader("To", recipientEmail)
 	mail.SetHeader("Subject", subject)
 	mail.SetBody("text/html", tmplOutput.String())

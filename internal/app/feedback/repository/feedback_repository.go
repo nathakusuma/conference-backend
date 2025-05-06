@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"github.com/nathakusuma/astungkara/domain/contract"
-	"github.com/nathakusuma/astungkara/domain/dto"
-	"github.com/nathakusuma/astungkara/domain/entity"
+	"github.com/nathakusuma/conference-backend/domain/contract"
+	"github.com/nathakusuma/conference-backend/domain/dto"
+	"github.com/nathakusuma/conference-backend/domain/entity"
 	"time"
 )
 

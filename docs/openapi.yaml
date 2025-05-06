@@ -1,13 +1,11 @@
 openapi: 3.1.0
 info:
-  title: Astungkara
+  title: Conference App
   version: '1.0.0'
 
 servers:
-  - url: "https://astungkara.nathakusuma.com/api/v1"
+  - url: "https://conference.nathakusuma.com/api/v1"
     description: Production server
-  - url: "http://localhost/api/v1"
-    description: Local development server
 
 components:
   securitySchemes:
@@ -95,7 +93,7 @@ components:
         speaker_name:
           type: string
           examples:
-            - "Yoga Raditya Nala"
+            - "Bambang Bimbang"
         speaker_title:
           type: string
           examples:
@@ -928,7 +926,7 @@ paths:
                   minLength: 3
                   maxLength: 100
                   examples:
-                    - "Yoga Raditya Nala"
+                    - "Bambang Bimbang"
                 speaker_title:
                   type: string
                   minLength: 3
@@ -1242,7 +1240,7 @@ paths:
                   minLength: 3
                   maxLength: 100
                   examples:
-                    - "Christopher Robin Tanugroho"
+                    - "Budi Idbu"
                 speaker_title:
                   type: [ string, "null" ]
                   minLength: 3

@@ -8,15 +8,15 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/nathakusuma/astungkara/domain/contract"
-	"github.com/nathakusuma/astungkara/domain/dto"
-	"github.com/nathakusuma/astungkara/domain/entity"
-	"github.com/nathakusuma/astungkara/domain/enum"
-	"github.com/nathakusuma/astungkara/domain/errorpkg"
-	"github.com/nathakusuma/astungkara/internal/app/conference/service"
-	appmocks "github.com/nathakusuma/astungkara/test/unit/mocks/app"
-	pkgmocks "github.com/nathakusuma/astungkara/test/unit/mocks/pkg"
-	_ "github.com/nathakusuma/astungkara/test/unit/setup" // Initialize test environment
+	"github.com/nathakusuma/conference-backend/domain/contract"
+	"github.com/nathakusuma/conference-backend/domain/dto"
+	"github.com/nathakusuma/conference-backend/domain/entity"
+	"github.com/nathakusuma/conference-backend/domain/enum"
+	"github.com/nathakusuma/conference-backend/domain/errorpkg"
+	"github.com/nathakusuma/conference-backend/internal/app/conference/service"
+	appmocks "github.com/nathakusuma/conference-backend/test/unit/mocks/app"
+	pkgmocks "github.com/nathakusuma/conference-backend/test/unit/mocks/pkg"
+	_ "github.com/nathakusuma/conference-backend/test/unit/setup" // Initialize test environment
 	"github.com/stretchr/testify/assert"
 )
 

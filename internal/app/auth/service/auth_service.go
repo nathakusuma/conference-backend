@@ -4,23 +4,22 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"net/url"
 	"strconv"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/nathakusuma/astungkara/domain/contract"
-	"github.com/nathakusuma/astungkara/domain/dto"
-	"github.com/nathakusuma/astungkara/domain/entity"
-	"github.com/nathakusuma/astungkara/domain/enum"
-	"github.com/nathakusuma/astungkara/domain/errorpkg"
-	"github.com/nathakusuma/astungkara/internal/infra/env"
-	"github.com/nathakusuma/astungkara/pkg/bcrypt"
-	"github.com/nathakusuma/astungkara/pkg/jwt"
-	"github.com/nathakusuma/astungkara/pkg/log"
-	"github.com/nathakusuma/astungkara/pkg/mail"
-	"github.com/nathakusuma/astungkara/pkg/randgen"
-	"github.com/nathakusuma/astungkara/pkg/uuidpkg"
+	"github.com/nathakusuma/conference-backend/domain/contract"
+	"github.com/nathakusuma/conference-backend/domain/dto"
+	"github.com/nathakusuma/conference-backend/domain/entity"
+	"github.com/nathakusuma/conference-backend/domain/enum"
+	"github.com/nathakusuma/conference-backend/domain/errorpkg"
+	"github.com/nathakusuma/conference-backend/internal/infra/env"
+	"github.com/nathakusuma/conference-backend/pkg/bcrypt"
+	"github.com/nathakusuma/conference-backend/pkg/jwt"
+	"github.com/nathakusuma/conference-backend/pkg/log"
+	"github.com/nathakusuma/conference-backend/pkg/mail"
+	"github.com/nathakusuma/conference-backend/pkg/randgen"
+	"github.com/nathakusuma/conference-backend/pkg/uuidpkg"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -85,11 +84,10 @@ func (s *authService) RequestOTPRegisterUser(ctx context.Context, email string) 
 	go func() {
 		err = s.mailer.Send(
 			email,
-			"[Astungkara] Verify Your Account",
+			"[Conference App] Verify Your Account",
 			"otp_register_user.html",
 			map[string]interface{}{
-				"otp":  otp,
-				"href": env.GetEnv().FrontendURL + "/verify-email?email=" + url.QueryEscape(email) + "&otp=" + otp,
+				"otp": otp,
 			})
 
 		if err != nil {
@@ -378,7 +376,7 @@ func (s *authService) RequestOTPResetPassword(ctx context.Context, email string)
 	go func() {
 		err = s.mailer.Send(
 			email,
-			"[Astungkara] Reset Password",
+			"[Conference App] Reset Password",
 			"otp_reset_password.html",
 			map[string]interface{}{
 				"otp": otp,

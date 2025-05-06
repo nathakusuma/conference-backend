@@ -1,7 +1,7 @@
 package jwt
 
 import (
-	"github.com/nathakusuma/astungkara/domain/enum"
+	"github.com/nathakusuma/conference-backend/domain/enum"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -33,7 +33,7 @@ func NewJwt(exp time.Duration, secret []byte) IJwt {
 func (j *JwtStruct) Create(userID uuid.UUID, role enum.UserRole) (string, error) {
 	claims := Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "astungkara",
+			Issuer:    "conference-backend",
 			Subject:   userID.String(),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.exp)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

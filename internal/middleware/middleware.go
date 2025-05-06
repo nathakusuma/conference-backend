@@ -1,6 +1,6 @@
 package middleware
 
-import "github.com/nathakusuma/astungkara/pkg/jwt"
+import "github.com/nathakusuma/conference-backend/pkg/jwt"
 
 type Middleware struct {
 	jwt jwt.IJwt

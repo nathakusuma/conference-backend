@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	dto "github.com/nathakusuma/astungkara/domain/dto"
+	dto "github.com/nathakusuma/conference-backend/domain/dto"
 
 	mock "github.com/stretchr/testify/mock"
 

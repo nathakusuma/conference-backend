@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"github.com/nathakusuma/astungkara/domain/enum"
+	"github.com/nathakusuma/conference-backend/domain/enum"
 	"time"
 
 	"github.com/google/uuid"

@@ -5,9 +5,9 @@ package mocks
 import (
 	context "context"
 
-	dto "github.com/nathakusuma/astungkara/domain/dto"
+	dto "github.com/nathakusuma/conference-backend/domain/dto"
 
-	enum "github.com/nathakusuma/astungkara/domain/enum"
+	enum "github.com/nathakusuma/conference-backend/domain/enum"
 
 	mock "github.com/stretchr/testify/mock"
 

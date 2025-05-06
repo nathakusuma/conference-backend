@@ -2,7 +2,7 @@ services:
   server:
     image: nginx:1.27-alpine
     ports:
-      - "${NGINX_PORT:-80}:80"
+      - "${SERVER_PORT:-80}:80"
     volumes:
       - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
@@ -22,7 +22,7 @@ services:
     restart: always
 
   app:
-    image: nathakusuma/astungkara:latest
+    image: nathakusuma/conference-backend:latest
     env_file:
       - .env
     environment:

@@ -58,7 +58,6 @@ services:
 
   postgres-exporter:
     image: bitnami/postgres-exporter:0.16.0
-    container_name: postgres-exporter
     environment:
       - POSTGRES_EXPORTER_DATA_SOURCE_NAME=postgresql://${DB_USER}:${DB_PASS}@db:${DB_PORT}/${DB_NAME}?sslmode=disable
       - POSTGRES_EXPORTER_AUTO_DISCOVER_DATABASES=true

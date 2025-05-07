@@ -31,5 +31,5 @@ func main() {
 
 	srv.MountMiddlewares()
 	srv.MountRoutes(postgresDB, redisClient)
-	srv.Start(env.GetEnv().ServerPort)
+	srv.Start("8080")
 }

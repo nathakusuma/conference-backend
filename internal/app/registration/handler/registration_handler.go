@@ -39,8 +39,12 @@ func InitRegistrationHandler(
 		handler.getRegisteredUsersByConference(),
 	)
 
+	registrationGroup.Get("/users/me",
+		handler.getRegisteredConferencesByUser("me"),
+	)
+
 	registrationGroup.Get("/users/:id",
-		handler.getRegisteredConferencesByUser(),
+		handler.getRegisteredConferencesByUser("id"),
 	)
 }
 
@@ -92,11 +96,17 @@ func (h *registrationHandler) getRegisteredUsersByConference() fiber.Handler {
 	}
 }
 
-func (h *registrationHandler) getRegisteredConferencesByUser() fiber.Handler {
+func (h *registrationHandler) getRegisteredConferencesByUser(param string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		userID, err := uuid.Parse(c.Params("id"))
-		if err != nil {
-			return errorpkg.ErrFailParseRequest
+		var userID uuid.UUID
+		if param == "me" {
+			userID = c.Locals("user.id").(uuid.UUID)
+		} else {
+			var err error
+			userID, err = uuid.Parse(c.Params("id"))
+			if err != nil {
+				return errorpkg.ErrFailParseRequest
+			}
 		}
 
 		var lazyReq dto.LazyLoadQuery

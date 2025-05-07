@@ -44,7 +44,7 @@ seed-down:
 	$(SEED_CMD)$(word 2,$(MAKECMDGOALS)).down.sql
 
 run:
-	docker pull nathakusuma/astungkara:latest
+	docker pull nathakusuma/conference-backend:latest
 	docker compose up -d
 	make migrate-up
 
@@ -52,9 +52,9 @@ stop:
 	docker compose down
 
 build-push:
-	docker image rm nathakusuma/astungkara:latest
-	docker build -t nathakusuma/astungkara:latest .
-	docker push nathakusuma/astungkara:latest
+	docker image rm nathakusuma/conference-backend:latest
+	docker build -t nathakusuma/conference-backend:latest .
+	docker push nathakusuma/conference-backend:latest
 
 # Catch the environment argument
 %:
